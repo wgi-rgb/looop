@@ -24,15 +24,15 @@ button{cursor:pointer}
 /* ---------- kop ---------- */
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(247,249,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header.top .wrap{display:flex;align-items:center;gap:32px;height:80px}
+header.top .wrap{display:flex;align-items:center;gap:56px;height:84px}
 .logo{display:flex;align-items:center;gap:12px;font-weight:700;white-space:nowrap}
 .wm{font-family:Outfit,sans-serif;font-size:48px;font-weight:600;letter-spacing:-.03em;line-height:1;color:var(--fg);display:inline-flex;align-items:baseline;transform:translateY(-4px)}
 .wm .o{transition:color .7s ease}
 .wm .o.on{color:var(--coral)}
 
 .logo #org{font-size:13px;color:var(--muted);font-weight:600;padding-left:12px;border-left:1px solid var(--line)}
-nav.tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
-nav.tabs a{padding:8px 14px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:600;white-space:nowrap}
+nav.tabs{display:flex;gap:2px;flex:1;overflow-x:auto}
+nav.tabs a{padding:7px 13px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:500;font-size:15px;white-space:nowrap}
 nav.tabs a:hover{color:var(--fg)}
 nav.tabs a.on{background:var(--pinetint);color:#17615b}
 .pub{display:flex;align-items:center;gap:12px;white-space:nowrap}
@@ -56,22 +56,22 @@ nav.tabs a.on{background:var(--pinetint);color:#17615b}
 .icoon svg{width:20px;height:20px}
 .demo{background:var(--ytint);color:var(--fg);text-align:center;font-size:13px;font-weight:700;padding:8px 16px}
 
-main{padding:40px 0 80px}
+main{padding:64px 0 120px}
 .kicker{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 h1{font-size:30px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
 h2{font-size:20px;margin:0;font-weight:700}
 .sub{color:var(--muted)}
-.kop{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap}
+.kop{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:40px;flex-wrap:wrap}
 .kop p{margin:6px 0 0;color:var(--muted);max-width:640px}
 .card{background:var(--panel);border-radius:var(--r)}
 .dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
 .lnk{border:0;background:none;padding:0;color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline;white-space:nowrap}
 .lnk:hover{color:var(--fg)}
-.sectie{display:grid;gap:12px}
+.sectie{display:grid;gap:14px}
 .sectie>.kicker{margin-top:12px}
 
 /* lijst links + editor rechts (Screens, Playlists) */
-.split{display:grid;grid-template-columns:300px minmax(0,1fr);gap:32px;align-items:start}
+.split{display:grid;grid-template-columns:280px minmax(0,1fr);gap:64px;align-items:start}
 .lijst{display:grid;gap:8px}
 .lk{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r);border:0;background:none;text-align:left;width:100%}
 .lk:hover{background:var(--panel)}
@@ -83,7 +83,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 .tag.licht{background:var(--panel2);color:var(--muted)}
 .nieuw{border:1px dashed #cfcac3;background:none;border-radius:var(--r);padding:14px 16px;color:var(--muted);font-weight:600;text-align:left;width:100%}
 .nieuw:hover{border-color:var(--fg);color:var(--fg)}
-.editor{display:grid;gap:20px;min-width:0}
+.editor{display:grid;gap:32px;min-width:0}
 .editor>*{min-width:0}
 .edkop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .naamveld{flex:1;min-width:200px;font-size:28px;font-weight:700;border:0;border-radius:8px;padding:4px 8px;margin-left:-8px;background:none}
@@ -94,7 +94,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 .leegvak{padding:32px;text-align:center;color:var(--muted);border:1px dashed #d6d1ca;border-radius:var(--r)}
 
 /* ---------- Now ---------- */
-.nu{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:32px;align-items:start}
+.nu{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:56px;align-items:start}
 .scherm{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:var(--r);overflow:hidden;background:var(--fg);box-shadow:0 0 0 8px var(--fg);margin:8px}
 .scherm iframe,.vb iframe{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;transform-origin:0 0;pointer-events:none}
 .nuinfo{display:grid;gap:20px}
@@ -103,7 +103,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 .regels{display:grid;gap:6px;margin:0;padding:0;list-style:none}
 .regels li{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--panel);border-radius:10px;font-weight:600}
 .regels li span{color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
-.vandaagblok{margin-bottom:36px}
+.vandaagblok{margin-bottom:56px}
 .vandaagblok .straks{font-size:13px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:8px;border:0;padding:0}
 .regels li{position:relative;overflow:hidden}
 .regels li b{font-weight:600;position:relative}
@@ -136,7 +136,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 .schermen button.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px rgba(7,5,4,.12)}
 
 /* ---------- items in playlist ---------- */
-.items{display:grid;gap:8px}
+.items{display:grid;gap:10px}
 .item{display:grid;grid-template-columns:28px 112px minmax(0,1fr) auto auto 36px;align-items:center;gap:16px;padding:10px 12px;background:var(--panel);border-radius:var(--r);transition:opacity .2s}
 .item.uit{opacity:.45}
 .item.sleep,.regel.sleep{box-shadow:0 10px 30px rgba(7,5,4,.15);position:relative;z-index:3;background:#fff}
@@ -191,7 +191,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 .subtabs button{border:0;background:none;padding:8px 16px;border-radius:999px;font-weight:600;color:var(--muted);white-space:nowrap}
 .subtabs button.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px rgba(7,5,4,.12)}
 .subtabs small{font-weight:600;color:var(--soft);margin-left:4px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:28px}
 .sk{background:var(--panel);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
 .sk .duim{width:100%;border-radius:0;cursor:pointer}
 .sk .bd{padding:14px 16px 6px;display:grid;gap:4px;flex:1;min-width:0}
@@ -248,13 +248,14 @@ h2{font-size:20px;margin:0;font-weight:700}
   .uren span:nth-child(even){display:none}
   .state .lbl{display:none}
   h1{font-size:26px}
-  main{padding-top:28px}
+  main{padding-top:36px}
+  header.top .wrap{gap:10px 20px}
 }
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="logo"><span class="wm" aria-label="looop">l<span class="o">o</span><span class="o">o</span><span class="o">o</span>p</span><span id="org"></span></div>
+  <div class="logo"><span class="wm" aria-label="looop">l<span class="o">o</span><span class="o">o</span><span class="o">o</span>p</span></div>
   <nav class="tabs" id="tabs">
     <a href="#now" data-v="now">Now</a><a href="#screens" data-v="screens">Screens</a><a href="#playlists" data-v="playlists">Playlists</a><a href="#library" data-v="library">Library</a>
   </nav>
@@ -468,7 +469,7 @@ function viewScreens() {
   const maandag = new Date(); maandag.setHours(12, 0, 0, 0); maandag.setDate(maandag.getDate() - (S.dag(maandag) - 1) + weekVerschuiving * 7);
   const dagen = [...Array(7)].map((_, i) => { const d = new Date(maandag); d.setDate(d.getDate() + i); return d; });
   $("#view").innerHTML = `
-    <div class="kop"><div><h1>Screens</h1><p>Each screen plays its default playlist. Add a schedule to play another playlist at set times. When two schedules overlap, the top one wins.</p></div></div>
+    <div class="kop"><div><h1>Screens</h1></div></div>
     <div class="split">
       <div class="lijst">
         ${cfg.schermen.map(x => { const p = S.actievePlaylist(cfg, new Date(), x.id).playlist; return `<button class="lk ${x.id === sc.id ? "on" : ""}" data-id="${x.id}">
@@ -511,8 +512,7 @@ function viewScreens() {
               <button class="icoon" id="wVerder" title="Next week" aria-label="Next week">›</button></div></div>
           <div id="weekGrid">${dagen.map(d => `<div class="wrij"><div class="dg">${DAGNAAM[S.dag(d) - 1]}<small>${datumKort(S.ymd(d))}</small></div>${tijdlijn(d, sc)}</div>`).join("")}
             <div class="wrij"><div></div>${urenAs()}</div></div>
-          <div class="legenda">${cfg.playlists.filter(p => p.id === sc.standaard || sc.schema.some(r => r.playlist === p.id)).map(p => `<span><i class="dot" style="background:${kleur(p.id)}"></i>${esc(p.naam)}</span>`).join("")}
-            <span style="margin-left:auto;font-weight:500">Click a block to edit it</span></div>
+          <div class="legenda">${cfg.playlists.filter(p => p.id === sc.standaard || sc.schema.some(r => r.playlist === p.id)).map(p => `<span><i class="dot" style="background:${kleur(p.id)}"></i>${esc(p.naam)}</span>`).join("")}</div>
         </div>
       </div>
     </div>`;
@@ -603,7 +603,7 @@ function viewPlaylists() {
   if (!cfg.playlists.some(p => p.id === gekozen)) gekozen = sch().standaard || (cfg.playlists[0] || {}).id;
   const pl = cfg.playlists.find(p => p.id === gekozen);
   $("#view").innerHTML = `
-    <div class="kop"><div><h1>Playlists</h1><p>A playlist is a set of items from the library that play one after another, each for its own duration. The same item can have a different duration in another playlist.</p></div></div>
+    <div class="kop"><div><h1>Playlists</h1></div></div>
     <div class="split">
       <div class="lijst">
         ${cfg.playlists.map(p => `<button class="lk ${p.id === gekozen ? "on" : ""}" data-id="${p.id}">
@@ -719,10 +719,9 @@ function viewLibrary() {
     media: `<button class="sk add" id="libAdd"><span>+</span>Upload images or videos<small>or drop files here · JPG, PNG, MP4 · max ${MAX_MB} MB</small></button>`,
     links: `<button class="sk add" id="libAdd"><span>+</span>Add web page</button>` }[libTab] || "";
   $("#view").innerHTML = `
-    <div class="kop"><div><h1>Library</h1><p>Everything that can be shown on a screen. Add items here, then put them in a playlist.</p></div></div>
+    <div class="kop"><div><h1>Library</h1></div></div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
       <div class="subtabs">${[["slides", "Slides", tel(["slide"])], ["media", "Media", tel(["image", "video"])], ["links", "Web pages", tel(["link"])]].map(([k, n, c]) => `<button class="${k === libTab ? "on" : ""}" data-tab="${k}">${n}<small>${c}</small></button>`).join("")}</div>
-      <span class="sub" style="font-size:13.5px;flex:1;min-width:220px">${t.uitleg}</span>
     </div>
     <div class="grid">
       ${lijst.map(s => { const g = gebruik(s.id); return `<div class="sk" data-id="${s.id}">
@@ -900,7 +899,7 @@ async function publiceer() {
 
 function instellingen() {
   open(`<div class="mk"><h2>Settings</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
-    <div class="veld"><label for="orgNaam">Organisation</label><input id="orgNaam" value="${esc(cfg.organisatie || "")}" placeholder="e.g. Vlaamse Vaarschool"><small>Shown next to the LOOOP logo.</small></div>
+    <div class="veld"><label for="orgNaam">Organisation</label><input id="orgNaam" value="${esc(cfg.organisatie || "")}" placeholder="e.g. Vlaamse Vaarschool"></div>
     <div><span class="kicker">Publish via GitHub</span></div>
     <div class="veld"><label for="ghRepo">Repository</label><input id="ghRepo" placeholder="username/looop" value="${esc(gh.repo || "")}"></div>
     <div class="veld"><label for="ghBranch">Branch</label><input id="ghBranch" value="${esc(gh.branch || "main")}"></div>
@@ -914,7 +913,7 @@ function instellingen() {
     <div><span class="kicker">Backup</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn klein" id="exp">Download configuration</button><button class="btn klein" id="imp">Load configuration…</button><input type="file" id="impF" accept=".js,.json" hidden></div>
     <div class="macties"><button class="btn" data-sluit>Close</button><button class="btn prim" id="ghOk">Save and test</button></div>`);
-  $("#orgNaam").onchange = e => { cfg.organisatie = e.target.value.trim(); $("#org").textContent = cfg.organisatie; bewaar(false); };
+  $("#orgNaam").onchange = e => { cfg.organisatie = e.target.value.trim(); bewaar(false); };
   $("#exp").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([S.schrijfConfigTekst(cfg)], { type: "text/javascript" })); a.download = "config.js"; a.click(); };
   $("#imp").onclick = () => $("#impF").click();
   $("#impF").onchange = async e => { try { cfg = S.migreer(S.leesConfigTekst(await e.target.files[0].text())); sluit(); bewaar(); melding("Configuration loaded as unpublished changes"); } catch (x) { melding("This file can't be read"); } };
@@ -930,8 +929,6 @@ function instellingen() {
 
 /* ============================================================ start */
 $("#publiceer").onclick = publiceer;
-$("#org").textContent = cfg.organisatie || "";
-$("#org").hidden = !cfg.organisatie;
 /* het logo: de koraal-o loopt rond, zoals een playlist */
 (() => { const os = [...document.querySelectorAll(".wm .o")]; let k = 1; os[k].classList.add("on");
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
