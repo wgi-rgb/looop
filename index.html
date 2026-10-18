@@ -164,6 +164,20 @@ if (!PREVIEW) {
 } else {
   parent.postMessage({ type: "looop-speler-klaar" }, "*");
 }
+
+/* Automatisch bijwerken: verschijnt er een nieuwe versie van de app (app.json), dan herlaadt deze pagina zichzelf. */
+(function () {
+  if (location.protocol === "file:") return;
+  let geladen = null;
+  const kijk = async () => {
+    try {
+      const v = (await (await fetch("app.json?t=" + Date.now(), { cache: "no-store" })).json()).versie;
+      if (geladen === null) geladen = v;
+      else if (v !== geladen && !(document.querySelector("#modal.open"))) location.reload();
+    } catch (e) {}
+  };
+  kijk(); setInterval(kijk, 3 * 60 * 1000);
+})();
 </script>
 </body>
 </html>

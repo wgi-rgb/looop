@@ -939,6 +939,20 @@ $("#instel").onclick = instellingen;
   try { const c = await ghLaad(); if (c) { const had = gewijzigd(); gepubliceerd = c; if (!had) cfg = kloon(c); } } catch (e) { melding("GitHub: " + e.message); }
   status(); ga(view);
 })();
+
+/* Automatisch bijwerken: verschijnt er een nieuwe versie van de app (app.json), dan herlaadt deze pagina zichzelf. */
+(function () {
+  if (location.protocol === "file:") return;
+  let geladen = null;
+  const kijk = async () => {
+    try {
+      const v = (await (await fetch("app.json?t=" + Date.now(), { cache: "no-store" })).json()).versie;
+      if (geladen === null) geladen = v;
+      else if (v !== geladen && !(document.querySelector("#modal.open"))) location.reload();
+    } catch (e) {}
+  };
+  kijk(); setInterval(kijk, 3 * 60 * 1000);
+})();
 </script>
 </body>
 </html>
