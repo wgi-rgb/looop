@@ -296,6 +296,8 @@ let cfg = S.migreer(lees(CONCEPT, null) || kloon(gepubliceerd));
 let schermId = lees("looop-scherm", null);
 const sch = () => S.schermById(cfg, schermId);
 let gh = lees(GHKEY, {}), ghSha = null, teUploaden = false;
+/* op GitHub Pages (gebruiker.github.io/repo) vullen we de repository alvast in */
+if (!gh.repo && /\.github\.io$/.test(location.hostname)) gh.repo = location.hostname.split(".")[0] + "/" + (location.pathname.split("/")[1] || "");
 let view = (location.hash || "#now").slice(1), gekozen = null, weekVerschuiving = 0, libTab = "slides";
 
 /* ---------- hulp ---------- */
