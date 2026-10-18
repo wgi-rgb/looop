@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 5,
-  "bijgewerkt": "2026-10-18T20:07:57.475Z",
+  "versie": 6,
+  "bijgewerkt": "2026-10-18T20:08:24.841Z",
   "slides": [
     {
       "id": "programma",
@@ -165,7 +165,8 @@ window.SIGNAGE_CONFIG = {
             5
           ],
           "van": "08:00",
-          "tot": "09:00"
+          "tot": "09:00",
+          "aan": false
         },
         {
           "id": "regel-ab",
@@ -178,7 +179,8 @@ window.SIGNAGE_CONFIG = {
             5
           ],
           "van": "13:00",
-          "tot": "13:30"
+          "tot": "13:30",
+          "aan": false
         },
         {
           "id": "r1",
@@ -194,7 +196,7 @@ window.SIGNAGE_CONFIG = {
           ],
           "van": "19:00",
           "tot": "07:00",
-          "aan": true
+          "aan": false
         }
       ]
     }
