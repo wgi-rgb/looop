@@ -75,6 +75,14 @@ function laad(frame, slide) {
   return frame.klaar;
 }
 
+/* Klokgestuurd afspelen: welke slide speelt, volgt uit de klok (seconden sinds 1970, modulo de duur
+   van één rondje). Zo tonen alle schermen en het voorbeeld in het beheer op hetzelfde moment dezelfde slide. */
+function positie(l) {
+  const totaal = l.reduce((t, s) => t + s.duur, 0), t = (nu().getTime() / 1000) % totaal;
+  let start = 0;
+  for (let i = 0; i < l.length; i++) { if (t < start + l[i].duur) return { i, rest: start + l[i].duur - t }; start += l[i].duur; }
+  return { i: 0, rest: l[0].duur };
+}
 async function volgende() {
   clearTimeout(timer);
   if (!cfg) return toonLeeg(true);
@@ -90,28 +98,30 @@ async function volgende() {
     return toonLeeg(true);
   }
   toonLeeg(false);
-  idx = (idx + 1) % lijst.length;
-  const slide = lijst[idx];
-  if (lijst.length === 1 && frames[voor].dataset.slide === slide.id && frames[voor].classList.contains("zicht")) {
-    meld(pl, idx, slide); timer = setTimeout(volgende, slide.duur * 1000); return;   // één slide: gewoon laten staan
+  let { i, rest } = positie(lijst);
+  const slide = lijst[i];
+  const zichtbaar = frames[voor].classList.contains("zicht") && frames[voor].dataset.slide === slide.id;
+  if (!(zichtbaar && i === idx)) {
+    const achter = 1 - voor;
+    // meestal is deze slide al vooraf geladen tijdens de vorige; zo niet, nu laden
+    if (frames[achter].dataset.slide !== slide.id || !frames[achter].klaar) laad(frames[achter], slide);
+    await frames[achter].klaar;
+    ({ i, rest } = positie(lijst));                 // laden kan even duren: opnieuw naar de klok kijken
+    if (lijst[i] !== slide) return volgende();
+    frames[achter].classList.add("zicht");
+    frames[voor].classList.remove("zicht");
+    voor = achter; idx = i;
+    // volgende slide alvast laden in het verborgen frame (na de overgang)
+    const nxt = lijst[(i + 1) % lijst.length];
+    if (lijst.length > 1 && nxt !== slide) setTimeout(() => { if (lijst.includes(nxt)) laad(frames[1 - voor], nxt); }, 1200);
   }
-  const achter = 1 - voor;
-  // meestal is deze slide al vooraf geladen tijdens de vorige; zo niet, nu laden
-  if (frames[achter].dataset.slide !== slide.id || !frames[achter].klaar) laad(frames[achter], slide);
-  await frames[achter].klaar;
-  frames[achter].classList.add("zicht");
-  frames[voor].classList.remove("zicht");
-  voor = achter;
-  meld(pl, idx, slide);
-  timer = setTimeout(volgende, slide.duur * 1000);
-  // volgende slide alvast laden in het verborgen frame (na de overgang)
-  const nxt = lijst[(idx + 1) % lijst.length];
-  if (lijst.length > 1) setTimeout(() => { if (lijst[(idx + 1) % lijst.length] === nxt) laad(frames[1 - voor], nxt); }, 1200);
+  meld(pl, i, slide, rest);
+  timer = setTimeout(volgende, Math.max(.3, rest) * 1000 + 50);
 }
 
 /* in het beheer: laten weten welke slide nu speelt */
-function meld(pl, i, slide) {
-  if (PREVIEW) parent.postMessage({ type: "looop-speelt", playlist: pl && pl.id, index: i, slide: slide && slide.id, duur: slide && slide.duur }, "*");
+function meld(pl, i, slide, rest) {
+  if (PREVIEW) parent.postMessage({ type: "looop-speelt", playlist: pl && pl.id, index: i, slide: slide && slide.id, duur: slide && slide.duur, rest }, "*");
 }
 function toonLeeg(aan) { document.getElementById("leeg").classList.toggle("aan", aan); }
 function toonTag(pl) {

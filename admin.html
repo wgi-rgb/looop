@@ -428,7 +428,7 @@ window.addEventListener("message", e => {
   document.querySelectorAll("#nuLijst li").forEach(li => {
     const aan = +li.dataset.i === e.data.index, b = li.querySelector(".balk");
     li.classList.toggle("speelt", aan);
-    if (b) { b.style.transition = "none"; b.style.width = "0"; if (aan) { b.offsetWidth; b.style.transition = `width ${e.data.duur}s linear`; b.style.width = "100%"; } }
+    if (b) { const rest = e.data.rest ?? e.data.duur; b.style.transition = "none"; b.style.width = aan ? (100 * (1 - rest / e.data.duur)) + "%" : "0"; if (aan) { b.offsetWidth; b.style.transition = `width ${rest}s linear`; b.style.width = "100%"; } }
   });
 });
 
