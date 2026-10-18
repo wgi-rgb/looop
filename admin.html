@@ -37,18 +37,18 @@ nav.tabs a:hover{color:var(--fg)}
 nav.tabs a.on{background:var(--pinetint);color:#17615b}
 .pub{display:flex;align-items:center;gap:12px;white-space:nowrap}
 .state{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:600}
-.state i{width:8px;height:8px;border-radius:50%;background:#bdb8b1}
-.state.dirty i{background:var(--red)}
+.state i{width:8px;height:8px;border-radius:50%;background:var(--pine)}
+.state.dirty i{background:#e0a03a}
 .state button{border:0;background:none;padding:0;color:var(--muted);text-decoration:underline;font-size:13px}
-.btn{border:0;border-radius:999px;padding:10px 18px;font-weight:700;background:var(--panel);transition:background .15s}
-.btn:hover{background:var(--panel2)}
-.btn.prim{background:var(--pine);color:#fff}
+.btn{border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-weight:600;background:#fff;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--soft)}
+.btn.prim{background:var(--pine);border-color:var(--pine);color:#fff}
 .btn.prim:hover{background:var(--pine2)}
-.btn.prim:disabled{background:var(--panel);color:var(--soft);cursor:default}
-.btn.zwart{background:var(--pine);color:#fff}
+.btn.prim:disabled{background:var(--panel);border-color:var(--panel);color:var(--soft);cursor:default}
+.btn.zwart{background:var(--pine);border-color:var(--pine);color:#fff}
 .btn.zwart:hover{background:var(--pine2)}
 .btn.klein{padding:7px 14px;font-size:13px}
-.btn.tekst{background:none;padding:7px 10px;color:var(--muted)}
+.btn.tekst{background:none;border-color:transparent;padding:7px 10px;color:var(--muted)}
 .btn.tekst:hover{color:var(--fg);background:var(--panel)}
 .btn.gevaar:hover{color:var(--red)}
 .icoon{width:40px;height:40px;border-radius:50%;border:0;background:none;display:grid;place-items:center;color:var(--muted);font-size:20px;flex:none}
@@ -57,13 +57,13 @@ nav.tabs a.on{background:var(--pinetint);color:#17615b}
 .demo{background:var(--ytint);color:var(--fg);text-align:center;font-size:13px;font-weight:700;padding:8px 16px}
 
 main{padding:64px 0 120px}
-.kicker{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.kicker{font-size:14px;font-weight:600;color:var(--muted)}
 h1{font-size:30px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
 h2{font-size:20px;margin:0;font-weight:700}
 .sub{color:var(--muted)}
 .kop{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:40px;flex-wrap:wrap}
 .kop p{margin:6px 0 0;color:var(--muted);max-width:640px}
-.card{background:var(--panel);border-radius:var(--r)}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r)}
 .dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
 .lnk{border:0;background:none;padding:0;color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline;white-space:nowrap}
 .lnk:hover{color:var(--fg)}
@@ -75,12 +75,12 @@ h2{font-size:20px;margin:0;font-weight:700}
 .lijst{display:grid;gap:8px}
 .lk{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r);border:0;background:none;text-align:left;width:100%}
 .lk:hover{background:var(--panel)}
-.lk.on{background:#fff;box-shadow:inset 3px 0 0 var(--pine),0 1px 2px rgba(22,48,43,.06)}
+.lk.on{background:#fff;box-shadow:inset 3px 0 0 var(--pine),0 0 0 1px var(--line)}
 .lk b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lk small{color:var(--muted);font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lk svg{width:20px;height:20px;color:var(--muted)}
-.tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--pine);color:#fff;white-space:nowrap}
-.tag.licht{background:var(--panel2);color:var(--muted)}
+.tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--pine);color:#fff;white-space:nowrap}
+.tag.licht{background:var(--panel);color:var(--muted)}
 .nieuw{border:1px dashed #cfcac3;background:none;border-radius:var(--r);padding:14px 16px;color:var(--muted);font-weight:600;text-align:left;width:100%}
 .nieuw:hover{border-color:var(--fg);color:var(--fg)}
 .editor{display:grid;gap:32px;min-width:0}
@@ -101,7 +101,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 .nuinfo h1{display:flex;align-items:center;gap:12px}
 .nuinfo h1 .dot{width:14px;height:14px}
 .regels{display:grid;gap:6px;margin:0;padding:0;list-style:none}
-.regels li{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--panel);border-radius:10px;font-weight:600}
+.regels li{display:flex;justify-content:space-between;gap:12px;padding:11px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;font-weight:600}
 .regels li span{color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
 .vandaagblok{margin-bottom:56px}
 .vandaagblok .straks{font-size:13px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:8px;border:0;padding:0}
@@ -137,7 +137,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 
 /* ---------- items in playlist ---------- */
 .items{display:grid;gap:10px}
-.item{display:grid;grid-template-columns:28px 112px minmax(0,1fr) auto auto 36px;align-items:center;gap:16px;padding:10px 12px;background:var(--panel);border-radius:var(--r);transition:opacity .2s}
+.item{display:grid;grid-template-columns:28px 112px minmax(0,1fr) auto auto 36px;align-items:center;gap:16px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);transition:opacity .2s}
 .item.uit{opacity:.45}
 .item.sleep,.regel.sleep{box-shadow:0 10px 30px rgba(7,5,4,.15);position:relative;z-index:3;background:#fff}
 .grip{cursor:grab;color:var(--soft);display:grid;place-items:center;height:40px;touch-action:none}
@@ -148,26 +148,29 @@ h2{font-size:20px;margin:0;font-weight:700}
 .duim svg{width:26%;max-width:34px;height:auto}
 .item b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .item small{color:var(--muted);font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.soort{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:6px}
-.duur{display:flex;align-items:center;background:#fff;border-radius:999px;height:36px}
+.soort{font-size:12.5px;font-weight:600;color:var(--soft);margin-right:8px}
+.duur{display:flex;align-items:center;background:var(--panel);border-radius:999px;height:36px}
 .duur button{border:0;background:none;width:34px;height:36px;font-size:18px;color:var(--muted);border-radius:999px}
 .duur button:hover{color:var(--fg)}
-.duur span{min-width:48px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.duur .dv{display:flex;align-items:center;gap:2px;font-weight:700;font-variant-numeric:tabular-nums;cursor:text}
+.duur .dv input{width:36px;border:0;background:none;text-align:right;font-weight:700;padding:4px 0;border-radius:6px;-moz-appearance:textfield}
+.duur .dv input::-webkit-inner-spin-button,.duur .dv input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.duur .dv input:focus{outline:2px solid var(--pine);outline-offset:2px}
 .sw{position:relative;width:42px;height:24px;border-radius:999px;background:#d3cec7;border:0;padding:0;transition:background .2s;flex:none}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
 .sw.on{background:var(--pine)}
 .sw.on::after{transform:translateX(18px)}
 .weg{border:0;background:none;width:36px;height:36px;border-radius:50%;color:var(--soft);font-size:20px;flex:none}
-.weg:hover{background:#fff;color:var(--red)}
+.weg:hover{background:var(--panel);color:var(--red)}
 
 /* ---------- schema's van een scherm ---------- */
 .std{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;font-weight:600}
-.kies{appearance:none;border:0;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23070504' stroke-width='1.8'/%3E%3C/svg%3E") right 14px center no-repeat;border-radius:999px;padding:9px 38px 9px 16px;font-weight:700;max-width:100%;color:var(--fg)}
+.kies{appearance:none;border:1px solid var(--line);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23070504' stroke-width='1.8'/%3E%3C/svg%3E") right 14px center no-repeat;border-radius:999px;padding:9px 38px 9px 16px;font-weight:700;max-width:100%;color:var(--fg)}
 .kies.groot{border:1px solid var(--line);border-radius:10px;padding:11px 40px 11px 12px;width:100%}
-.regel{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 16px 8px 10px;background:var(--panel);border-radius:var(--r)}
+.regel{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 16px 8px 10px;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
 .regel.uit .rk{opacity:.45}
 .rk{display:flex;align-items:center;gap:14px;border:0;background:none;padding:6px 8px;border-radius:10px;text-align:left;min-width:0}
-.rk:hover{background:#fff}
+.rk:hover{background:var(--panel)}
 .rk b{display:block;font-weight:700}
 .rk small{display:block;color:var(--muted);font-size:13.5px}
 .staal{width:14px;height:36px;border-radius:4px;border-left:4px solid;flex:none}
@@ -192,7 +195,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 .subtabs button.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px rgba(7,5,4,.12)}
 .subtabs small{font-weight:600;color:var(--soft);margin-left:4px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:28px}
-.sk{background:var(--panel);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.sk{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
 .sk .duim{width:100%;border-radius:0;cursor:pointer}
 .sk .bd{padding:14px 16px 6px;display:grid;gap:4px;flex:1;min-width:0}
 .sk input.nm{border:0;background:none;font-weight:700;font-size:15px;padding:2px 6px;margin-left:-6px;border-radius:6px;width:100%;min-width:0}
@@ -222,13 +225,23 @@ h2{font-size:20px;margin:0;font-weight:700}
 .kiesgrid button{border:0;background:var(--panel);border-radius:10px;padding:0;overflow:hidden;text-align:left;min-width:0}
 .kiesgrid button:hover{box-shadow:0 0 0 2px var(--fg)}
 .kiesgrid .duim{width:100%;border-radius:0}
+.kiesgrid button{position:relative}
 .kiesgrid b{display:block;padding:10px 12px;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kiesgrid .in{position:absolute;top:8px;right:8px;background:var(--pine);color:#fff;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px}
 .vb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:10px;overflow:hidden;background:var(--fg)}
 .uitleg{background:var(--panel);border-radius:10px;padding:14px 16px;font-size:13.5px;color:#4a4643}
 .uitleg ol{margin:6px 0 0;padding-left:18px}
+.uitleg summary{cursor:pointer}
+.verb{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--muted)}
+.verb i{width:9px;height:9px;border-radius:50%;background:var(--soft)}
+.verb.ok{color:var(--fg)}
+.verb.ok i{background:var(--pine)}
 .kopie{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;margin-top:8px}
 #melding{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--fg);color:#fff;padding:12px 20px;border-radius:999px;font-weight:600;z-index:60;transition:.25s;pointer-events:none;max-width:calc(100vw - 32px)}
 #melding.aan{opacity:1;transform:translate(-50%,0)}
+#melding.actie{pointer-events:auto;display:flex;align-items:center;gap:16px;padding-right:8px}
+#melding button{border:0;background:rgba(255,255,255,.14);color:#fff;font-weight:700;border-radius:999px;padding:6px 14px}
+#melding button:hover{background:rgba(255,255,255,.24)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 @media (max-width:980px){
@@ -261,7 +274,7 @@ h2{font-size:20px;margin:0;font-weight:700}
   </nav>
   <div class="pub">
     <div class="state" id="state"></div>
-    <button class="btn prim" id="publiceer">Publish</button>
+    <button class="btn prim" id="publiceer" title="Publish (⌘S)">Publish</button>
     <button class="icoon" id="instel" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </div>
 </div></header>
@@ -370,7 +383,16 @@ function status() {
   $("#publiceer").disabled = !d;
   if (d) $("#herstel").onclick = async () => { if (await bevestig("Discard changes?", "Everything you changed since the last publish will be lost.", "Discard")) { cfg = kloon(gepubliceerd); bewaar(); melding("Changes discarded"); } };
 }
-function melding(t) { const m = $("#melding"); m.textContent = t; m.classList.add("aan"); clearTimeout(m.t); m.t = setTimeout(() => m.classList.remove("aan"), 2800); }
+function melding(t, actie) {
+  const m = $("#melding"); m.innerHTML = ""; m.append(t);
+  if (actie) { const b = document.createElement("button"); b.textContent = actie.label; b.onclick = () => { m.classList.remove("aan"); actie.fn(); }; m.append(b); }
+  m.classList.toggle("actie", !!actie); m.classList.add("aan"); clearTimeout(m.t); m.t = setTimeout(() => m.classList.remove("aan"), actie ? 6000 : 2800);
+}
+/* destructieve actie met "Undo": bewaar een kopie, voer uit, bied herstel aan */
+function metUndo(tekst, doe) {
+  const voor = kloon(cfg); doe(); bewaar();
+  melding(tekst, { label: "Undo", fn: () => { cfg = voor; bewaar(); melding("Restored"); } });
+}
 
 /* ---------- navigatie ---------- */
 function ga(v) { view = v; if (location.hash !== "#" + v) history.replaceState(null, "", "#" + v); render(); }
@@ -608,7 +630,7 @@ function viewPlaylists() {
       <div class="lijst">
         ${cfg.playlists.map(p => `<button class="lk ${p.id === gekozen ? "on" : ""}" data-id="${p.id}">
             <span class="dot" style="background:${kleur(p.id)}"></span>
-            <span><b>${esc(p.naam)}</b><small>${S.speellijst(cfg, p).length} item${S.speellijst(cfg, p).length === 1 ? "" : "s"} · ${duurTekst(rondje(p))}</small></span>
+            <span><b>${esc(p.naam)}</b><small>${S.speellijst(cfg, p).length} item${S.speellijst(cfg, p).length === 1 ? "" : "s"}, ${duurTekst(rondje(p))}</small></span>
             ${cfg.schermen.some(sc => sc.standaard === p.id) ? `<span class="tag">Default</span>` : gebruikPl(p.id).length ? `<span class="tag licht">Scheduled</span>` : ""}
           </button>`).join("")}
         <button class="nieuw" id="nieuwePl">+ New playlist</button>
@@ -640,7 +662,7 @@ function editor(pl) {
           <span class="grip" title="Drag to reorder">${ICON.grip}</span>
           ${duim(s)}
           <span><b>${esc(s.naam)}</b><small><span class="soort">${SOORT[soort(s)].naam}</span>${esc(omschrijving(s))}</small></span>
-          <span class="duur" title="How long this item shows in this playlist"><button data-d="-1" aria-label="Shorter">−</button><span>${S.itemDuur(cfg, it)} s</span><button data-d="1" aria-label="Longer">+</button></span>
+          <span class="duur" title="How long this item shows in this playlist"><button data-d="-1" aria-label="Shorter">−</button><label class="dv"><input type="number" min="3" max="600" value="${S.itemDuur(cfg, it)}" aria-label="Seconds"> s</label><button data-d="1" aria-label="Longer">+</button></span>
           <button class="sw ${it.aan === false ? "" : "on"}" title="${it.aan === false ? "Off: skipped" : "On"}" aria-label="On or off"></button>
           <button class="weg" title="Remove from this playlist" aria-label="Remove">×</button>
         </div>`; }).join("") || `<div class="leegvak">This playlist is empty.</div>`}
@@ -669,23 +691,30 @@ function koppelEditor(pl) {
   document.querySelectorAll("#items .item").forEach(el => {
     const it = pl.items[+el.dataset.i];
     el.querySelectorAll(".duur button").forEach(b => b.onclick = () => { it.duur = Math.min(600, Math.max(3, stap(S.itemDuur(cfg, it), +b.dataset.d))); bewaar(); });
+    const din = el.querySelector(".dv input");
+    din.onchange = () => { const v = Math.round(+din.value); if (v >= 3 && v <= 600) { it.duur = v; bewaar(); } else { melding("Choose between 3 and 600 seconds"); din.value = S.itemDuur(cfg, it); } };
+    din.onkeydown = e => { if (e.key === "Enter") din.blur(); };
     el.querySelector(".sw").onclick = () => { if (it.aan === false) delete it.aan; else it.aan = false; bewaar(); };
-    el.querySelector(".weg").onclick = () => { pl.items.splice(+el.dataset.i, 1); bewaar(); };
+    el.querySelector(".weg").onclick = () => { const s = S.slideById(cfg, it.slide); metUndo(`${s ? s.naam : "Item"} removed`, () => pl.items.splice(+el.dataset.i, 1)); };
   });
   sorteer($("#items"), ".item", (van, naar) => { const [x] = pl.items.splice(van, 1); pl.items.splice(naar, 0, x); bewaar(); });
 }
 function kiesItem(pl, tab = "slide") {
   const tabs = [["slide", "Slides"], ["image,video", "Media"], ["link", "Web pages"]];
   const lijst = cfg.slides.filter(s => tab.split(",").includes(soort(s)));
+  const telIn = id => pl.items.filter(i => i.slide === id).length;
   open(`<div class="mk"><h2>Add to ${esc(pl.naam)}</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
     <div><div class="subtabs">${tabs.map(([k, n]) => `<button class="${k === tab ? "on" : ""}" data-tab="${k}">${n}</button>`).join("")}</div></div>
-    ${lijst.length ? `<div class="kiesgrid">${lijst.map(s => `<button data-id="${s.id}">${duim(s)}<b>${esc(s.naam)}</b></button>`).join("")}</div>`
-      : `<div class="leegvak">Nothing here yet. Add it in the <button class="lnk" data-sluit id="naarLib">Library</button>.</div>`}`, true);
+    ${lijst.length ? `<div class="kiesgrid">${lijst.map(s => `<button data-id="${s.id}">${duim(s)}<b>${esc(s.naam)}</b><span class="in" ${telIn(s.id) ? "" : "hidden"}>✓ ${telIn(s.id) > 1 ? telIn(s.id) + "×" : "In playlist"}</span></button>`).join("")}</div>`
+      : `<div class="leegvak">Nothing here yet. Add it in the <button class="lnk" data-sluit id="naarLib">Library</button>.</div>`}
+    <div class="macties"><button class="btn prim" data-sluit>Done</button></div>`, true);
   document.querySelectorAll("#mbox [data-tab]").forEach(b => b.onclick = () => kiesItem(pl, b.dataset.tab));
   if ($("#naarLib")) $("#naarLib").onclick = () => { libTab = tab === "link" ? "links" : tab === "slide" ? "slides" : "media"; ga("library"); };
   document.querySelectorAll(".kiesgrid button").forEach(b => b.onclick = () => {
     const s = S.slideById(cfg, b.dataset.id);
-    pl.items.push({ slide: s.id, duur: s.duur || SOORT[soort(s)].duur }); sluit(); bewaar(); melding(`${s.naam} added`);
+    pl.items.push({ slide: s.id, duur: s.duur || SOORT[soort(s)].duur }); bewaar();
+    const n = telIn(s.id), t = b.querySelector(".in"); t.hidden = false; t.textContent = "✓ " + (n > 1 ? n + "×" : "Added");
+    melding(`${s.naam} added`);
   });
 }
 
@@ -872,13 +901,10 @@ async function publiceer() {
   cfg.schermen.forEach(sc => sc.schema.forEach(r => delete r._per));
   const tekst = S.schrijfConfigTekst(cfg);
   if (!gh.repo || !gh.token) {
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([tekst], { type: "text/javascript" })); a.download = "config.js"; a.click();
-    open(`<div class="mk"><h2>config.js downloaded</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
-      <p style="margin:0">GitHub isn't connected yet. Put the downloaded <b>config.js</b> in the site folder; the screens pick it up within a few minutes.</p>
-      <div class="uitleg">Faster: connect GitHub in <b>Settings</b> and publish with one click.</div>
-      <div class="macties"><button class="btn" data-sluit>Close</button><button class="btn prim" id="naarInst">Connect GitHub</button></div>`);
-    $("#naarInst").onclick = instellingen;
-    gepubliceerd = kloon(cfg); bewaar(false); teUploaden = true; status(); return;
+    open(`<div class="mk"><h2>Connect GitHub to publish</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+      <p style="margin:0" class="sub">Your changes are saved in this browser. To send them to the screens, connect this browser to GitHub once.</p>
+      <div class="macties"><button class="btn" data-sluit>Later</button><button class="btn prim" id="naarInst">Open settings</button></div>`);
+    $("#naarInst").onclick = instellingen; return;
   }
   knop.disabled = true; knop.textContent = "Publishing…";
   try {
@@ -899,17 +925,19 @@ async function publiceer() {
 
 function instellingen() {
   open(`<div class="mk"><h2>Settings</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
-    <div class="veld"><label for="orgNaam">Organisation</label><input id="orgNaam" value="${esc(cfg.organisatie || "")}" placeholder="e.g. Vlaamse Vaarschool"></div>
     <div><span class="kicker">Publish via GitHub</span></div>
+    <div class="verb ${gh.token ? "ok" : ""}"><i></i>${gh.token ? `Connected to <b>${esc(gh.repo)}</b>` : "Not connected yet"}</div>
     <div class="veld"><label for="ghRepo">Repository</label><input id="ghRepo" placeholder="username/looop" value="${esc(gh.repo || "")}"></div>
     <div class="veld"><label for="ghBranch">Branch</label><input id="ghBranch" value="${esc(gh.branch || "main")}"></div>
     <div class="veld"><label for="ghToken">Access token</label><input id="ghToken" type="password" placeholder="github_pat_…" value="${esc(gh.token || "")}">
       <small>Stored in this browser only. Enter it again on another computer.</small></div>
-    <div class="uitleg"><b>Create a token</b> (once, 2 minutes)<ol>
+    <details class="uitleg"><summary><b>How to create a token</b> (once, 2 minutes)</summary><ol>
       <li>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.</li>
       <li>Repository access: only this repository.</li>
       <li>Permissions → Contents: <b>Read and write</b>. Any expiry date.</li></ol>
-      <div style="margin-top:8px"><b>Second admin?</b> Invite them as a collaborator on the repository; they create their own token. If the other admin publishes while you edit, you get a warning before anything is overwritten.</div></div>
+      <div style="margin-top:8px"><b>Second admin?</b> Invite them as a collaborator on the repository; they create their own token. If the other admin publishes while you edit, you get a warning before anything is overwritten.</div></details>
+    <div><span class="kicker">Organisation</span></div>
+    <div class="veld"><input id="orgNaam" aria-label="Organisation name" value="${esc(cfg.organisatie || "")}" placeholder="e.g. Vlaamse Vaarschool"></div>
     <div><span class="kicker">Backup</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn klein" id="exp">Download configuration</button><button class="btn klein" id="imp">Load configuration…</button><input type="file" id="impF" accept=".js,.json" hidden></div>
     <div class="macties"><button class="btn" data-sluit>Close</button><button class="btn prim" id="ghOk">Save and test</button></div>`);
@@ -929,6 +957,7 @@ function instellingen() {
 
 /* ============================================================ start */
 $("#publiceer").onclick = publiceer;
+document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (gewijzigd()) publiceer(); else melding("Nothing to publish"); } });
 /* het logo: de koraal-o loopt rond, zoals een playlist */
 (() => { const os = [...document.querySelectorAll(".wm .o")]; let k = 1; os[k].classList.add("on");
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
