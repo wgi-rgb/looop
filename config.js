@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 3,
-  "bijgewerkt": "2026-10-18T18:40:16.155Z",
+  "versie": 4,
+  "bijgewerkt": "2026-10-18T18:41:02.055Z",
   "slides": [
     {
       "id": "programma",
@@ -104,7 +104,7 @@ window.SIGNAGE_CONFIG = {
       "items": [
         {
           "slide": "weer",
-          "duur": 20
+          "duur": 6
         },
         {
           "slide": "webcam",
@@ -116,7 +116,7 @@ window.SIGNAGE_CONFIG = {
         },
         {
           "slide": "webcam-oostende",
-          "duur": 15
+          "duur": 8
         }
       ]
     },
