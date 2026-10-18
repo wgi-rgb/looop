@@ -259,6 +259,8 @@ h2{font-size:20px;margin:0;font-weight:700}
   .item>.duur{grid-row:2;grid-column:3;justify-self:start}
   .item>.sw{grid-row:2;grid-column:4}
   .uren span:nth-child(even){display:none}
+  .weekkop{flex-wrap:wrap;row-gap:6px}
+  .vandaagblok .straks{width:100%}
   .state .lbl{display:none}
   h1{font-size:26px}
   main{padding-top:36px}
@@ -520,7 +522,7 @@ function viewScreens() {
                 <span class="grip" title="Drag to change priority">${ICON.grip}</span>
                 <button class="rk" data-edit title="Edit schedule"><span class="staal" style="background:${tint(r.playlist)};border-color:${kleur(r.playlist)}"></span>
                   <span><b>${esc(p ? p.naam : "?")}</b><small>${esc(regelTekst(r))}</small></span></button>
-                <button class="sw ${r.aan === false ? "" : "on"}" title="${r.aan === false ? "Paused" : "Active"}" aria-label="Active or paused"></button>
+                <button class="sw ${r.aan === false ? "" : "on"}" aria-pressed="${r.aan !== false}" title="${r.aan === false ? "Paused" : "Active"}" aria-label="Active or paused"></button>
               </div>`; }).join("") || `<div class="leegvak">Nothing scheduled. ${esc(sc.naam)} always plays its default playlist.</div>`}
           </div>
           <button class="nieuw" id="regelErbij">+ Schedule a playlist</button>
@@ -608,7 +610,7 @@ function regelEditor(sc, bestaand) {
     });
     document.querySelectorAll("#mbox [data-per]").forEach(b => b.onclick = () => { if (b.dataset.per === "1") r._per = true; else { delete r._per; delete r.vanaf; delete r.totDatum; } teken(); });
     if ($("#rVan")) { $("#rVan").onchange = e => { e.target.value ? r.vanaf = e.target.value : delete r.vanaf; zin(); }; $("#rTot").onchange = e => { e.target.value ? r.totDatum = e.target.value : delete r.totDatum; zin(); }; }
-    if ($("#rDel")) $("#rDel").onclick = () => { sc.schema = sc.schema.filter(x => x.id !== r.id); sluit(); bewaar(); melding("Schedule deleted"); };
+    if ($("#rDel")) $("#rDel").onclick = () => { sluit(); metUndo("Schedule deleted", () => { sc.schema = sc.schema.filter(x => x.id !== r.id); }); };
     $("#rOk").onclick = () => {
       delete r._per;
       if (r.vanaf && r.totDatum && r.totDatum < r.vanaf) return melding("The last day is before the first day");
@@ -663,7 +665,7 @@ function editor(pl) {
           ${duim(s)}
           <span><b>${esc(s.naam)}</b><small><span class="soort">${SOORT[soort(s)].naam}</span>${esc(omschrijving(s))}</small></span>
           <span class="duur" title="How long this item shows in this playlist"><button data-d="-1" aria-label="Shorter">−</button><label class="dv"><input type="number" min="3" max="600" value="${S.itemDuur(cfg, it)}" aria-label="Seconds"> s</label><button data-d="1" aria-label="Longer">+</button></span>
-          <button class="sw ${it.aan === false ? "" : "on"}" title="${it.aan === false ? "Off: skipped" : "On"}" aria-label="On or off"></button>
+          <button class="sw ${it.aan === false ? "" : "on"}" aria-pressed="${it.aan !== false}" title="${it.aan === false ? "Off: skipped" : "On"}" aria-label="On or off"></button>
           <button class="weg" title="Remove from this playlist" aria-label="Remove">×</button>
         </div>`; }).join("") || `<div class="leegvak">This playlist is empty.</div>`}
     </div>
@@ -766,11 +768,9 @@ function viewLibrary() {
     const s = S.slideById(cfg, el.dataset.id);
     el.querySelector(".duim").onclick = el.querySelector("[data-vb]").onclick = () => voorbeeld(s.naam, s);
     el.querySelector(".nm").onchange = e => { s.naam = e.target.value.trim() || s.naam; bewaar(); };
-    el.querySelector("[data-del]").onclick = async () => {
-      const g = gebruik(s.id);
-      if (!await bevestig(`Delete "${s.naam}"?`, g.length ? `It will also be removed from ${g.join(", ")}.` : "It isn't used in any playlist.")) return;
-      cfg.slides = cfg.slides.filter(x => x !== s); cfg.playlists.forEach(p => p.items = p.items.filter(i => i.slide !== s.id)); bewaar(); melding("Deleted");
-    };
+    el.querySelector("[data-del]").onclick = () => metUndo(`${s.naam} deleted`, () => {
+      cfg.slides = cfg.slides.filter(x => x !== s); cfg.playlists.forEach(p => p.items = p.items.filter(i => i.slide !== s.id));
+    });
   });
   const knop = $("#libAdd");
   if (libTab === "slides") knop.onclick = nieuweSlide;
