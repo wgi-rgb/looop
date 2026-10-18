@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LOOOP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<script src="signage-core.js"></script>
+<style>
+/* LOOOP · strak Scandinavisch: fris wit, diep leisteen, groenblauw als accent (de 'spelende' o) · Outfit.
+   Lay-out: vaste kop met menu; per sectie een lijst links en een editor rechts. */
+:root{--bg:#f7f9f8;--panel:#edf1f0;--panel2:#e2e8e6;--line:#dfe6e4;--fg:#1f2a2e;--muted:#64737a;--soft:#a2adb1;
+  --pine:#23877f;--pine2:#1c6f68;--pinetint:#d8eeeb;--coral:#2a9a91;--coraltint:#d8eeeb;--y:var(--coral);--ytint:var(--coraltint);--red:#c9563f;--r:12px;
+  --font:Outfit,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:500 15px/1.45 var(--font);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px))}
+
+/* ---------- kop ---------- */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(247,249,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:32px;height:80px}
+.logo{display:flex;align-items:center;gap:12px;font-weight:700;white-space:nowrap}
+.wm{font-family:Outfit,sans-serif;font-size:48px;font-weight:600;letter-spacing:-.03em;line-height:1;color:var(--fg);display:inline-flex;align-items:baseline;transform:translateY(-4px)}
+.wm .o{transition:color .7s ease}
+.wm .o.on{color:var(--coral)}
+
+.logo #org{font-size:13px;color:var(--muted);font-weight:600;padding-left:12px;border-left:1px solid var(--line)}
+nav.tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
+nav.tabs a{padding:8px 14px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:600;white-space:nowrap}
+nav.tabs a:hover{color:var(--fg)}
+nav.tabs a.on{background:var(--pinetint);color:#17615b}
+.pub{display:flex;align-items:center;gap:12px;white-space:nowrap}
+.state{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:600}
+.state i{width:8px;height:8px;border-radius:50%;background:#bdb8b1}
+.state.dirty i{background:var(--red)}
+.state button{border:0;background:none;padding:0;color:var(--muted);text-decoration:underline;font-size:13px}
+.btn{border:0;border-radius:999px;padding:10px 18px;font-weight:700;background:var(--panel);transition:background .15s}
+.btn:hover{background:var(--panel2)}
+.btn.prim{background:var(--pine);color:#fff}
+.btn.prim:hover{background:var(--pine2)}
+.btn.prim:disabled{background:var(--panel);color:var(--soft);cursor:default}
+.btn.zwart{background:var(--pine);color:#fff}
+.btn.zwart:hover{background:var(--pine2)}
+.btn.klein{padding:7px 14px;font-size:13px}
+.btn.tekst{background:none;padding:7px 10px;color:var(--muted)}
+.btn.tekst:hover{color:var(--fg);background:var(--panel)}
+.btn.gevaar:hover{color:var(--red)}
+.icoon{width:40px;height:40px;border-radius:50%;border:0;background:none;display:grid;place-items:center;color:var(--muted);font-size:20px;flex:none}
+.icoon:hover{background:var(--panel);color:var(--fg)}
+.icoon svg{width:20px;height:20px}
+.demo{background:var(--ytint);color:var(--fg);text-align:center;font-size:13px;font-weight:700;padding:8px 16px}
+
+main{padding:40px 0 80px}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:30px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:20px;margin:0;font-weight:700}
+.sub{color:var(--muted)}
+.kop{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap}
+.kop p{margin:6px 0 0;color:var(--muted);max-width:640px}
+.card{background:var(--panel);border-radius:var(--r)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+.lnk{border:0;background:none;padding:0;color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline;white-space:nowrap}
+.lnk:hover{color:var(--fg)}
+.sectie{display:grid;gap:12px}
+.sectie>.kicker{margin-top:12px}
+
+/* lijst links + editor rechts (Screens, Playlists) */
+.split{display:grid;grid-template-columns:300px minmax(0,1fr);gap:32px;align-items:start}
+.lijst{display:grid;gap:8px}
+.lk{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r);border:0;background:none;text-align:left;width:100%}
+.lk:hover{background:var(--panel)}
+.lk.on{background:#fff;box-shadow:inset 3px 0 0 var(--pine),0 1px 2px rgba(22,48,43,.06)}
+.lk b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lk small{color:var(--muted);font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lk svg{width:20px;height:20px;color:var(--muted)}
+.tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--pine);color:#fff;white-space:nowrap}
+.tag.licht{background:var(--panel2);color:var(--muted)}
+.nieuw{border:1px dashed #cfcac3;background:none;border-radius:var(--r);padding:14px 16px;color:var(--muted);font-weight:600;text-align:left;width:100%}
+.nieuw:hover{border-color:var(--fg);color:var(--fg)}
+.editor{display:grid;gap:20px;min-width:0}
+.editor>*{min-width:0}
+.edkop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.naamveld{flex:1;min-width:200px;font-size:28px;font-weight:700;border:0;border-radius:8px;padding:4px 8px;margin-left:-8px;background:none}
+.naamveld:hover{background:var(--panel)}
+.naamveld:focus{outline:2px solid var(--fg);background:#fff}
+.edmeta{display:flex;align-items:flex-start;gap:10px;color:var(--muted);flex-wrap:wrap}
+.edmeta .dot{margin-top:6px}
+.leegvak{padding:32px;text-align:center;color:var(--muted);border:1px dashed #d6d1ca;border-radius:var(--r)}
+
+/* ---------- Now ---------- */
+.nu{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:32px;align-items:start}
+.scherm{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:var(--r);overflow:hidden;background:var(--fg);box-shadow:0 0 0 8px var(--fg);margin:8px}
+.scherm iframe,.vb iframe{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;transform-origin:0 0;pointer-events:none}
+.nuinfo{display:grid;gap:20px}
+.nuinfo h1{display:flex;align-items:center;gap:12px}
+.nuinfo h1 .dot{width:14px;height:14px}
+.regels{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.regels li{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;background:var(--panel);border-radius:10px;font-weight:600}
+.regels li span{color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.vandaagblok{margin-bottom:36px}
+.vandaagblok .straks{font-size:13px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:8px;border:0;padding:0}
+.regels li{position:relative;overflow:hidden}
+.regels li b{font-weight:600;position:relative}
+.regels li span:not(.balk){position:relative}
+.regels li .balk{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ytint)}
+.regels li.speelt{background:#fff;box-shadow:inset 0 0 0 1.5px var(--coral)}
+.regels li.speelt b::before{content:"▶";font-size:10px;margin-right:8px;vertical-align:1px}
+
+/* tijdlijn */
+.tl{position:relative;height:40px;border-radius:8px;overflow:hidden;background:var(--panel)}
+.tl .seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;color:#4a4643;white-space:nowrap;overflow:hidden;border-right:2px solid #fff}
+.tl .nuL{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red);z-index:2}
+.uren{position:relative;height:18px;margin-top:6px;font-size:11px;color:var(--soft);font-weight:600;font-variant-numeric:tabular-nums}
+.uren span{position:absolute;transform:translateX(-50%)}
+.uren span:first-child{transform:none}.uren span:last-child{transform:translateX(-100%)}
+.week{margin-top:12px}
+.weekkop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.weekkop .nav{display:flex;align-items:center;gap:4px}
+.wrij{display:grid;grid-template-columns:86px minmax(0,1fr);gap:14px;align-items:center;margin-bottom:8px}
+.wrij .dg{font-weight:700;font-size:13px}
+.wrij .dg small{display:block;color:var(--muted);font-weight:500}
+.wrij .tl{height:32px}
+.legenda{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:13px;font-weight:600;color:var(--muted)}
+.legenda span{display:flex;align-items:center;gap:8px}
+
+/* schermkeuze in Now */
+.schermen{display:inline-flex;gap:4px;padding:4px;background:var(--panel);border-radius:999px;margin-bottom:28px;max-width:100%;overflow-x:auto}
+.schermen button{border:0;background:none;padding:8px 16px;border-radius:999px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.schermen button svg{width:16px;height:16px}
+.schermen button.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px rgba(7,5,4,.12)}
+
+/* ---------- items in playlist ---------- */
+.items{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:28px 112px minmax(0,1fr) auto auto 36px;align-items:center;gap:16px;padding:10px 12px;background:var(--panel);border-radius:var(--r);transition:opacity .2s}
+.item.uit{opacity:.45}
+.item.sleep,.regel.sleep{box-shadow:0 10px 30px rgba(7,5,4,.15);position:relative;z-index:3;background:#fff}
+.grip{cursor:grab;color:var(--soft);display:grid;place-items:center;height:40px;touch-action:none}
+.grip:active{cursor:grabbing}
+.duim{width:112px;max-width:100%;aspect-ratio:16/9;border-radius:6px;background:#dcd8d2 center/cover no-repeat;display:grid;place-items:center;color:#fff;position:relative;overflow:hidden}
+.duim.donker{background-color:#2a2622}
+.duim.web{background-color:#e3e0db;color:var(--muted)}
+.duim svg{width:26%;max-width:34px;height:auto}
+.item b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item small{color:var(--muted);font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.soort{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+.duur{display:flex;align-items:center;background:#fff;border-radius:999px;height:36px}
+.duur button{border:0;background:none;width:34px;height:36px;font-size:18px;color:var(--muted);border-radius:999px}
+.duur button:hover{color:var(--fg)}
+.duur span{min-width:48px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.sw{position:relative;width:42px;height:24px;border-radius:999px;background:#d3cec7;border:0;padding:0;transition:background .2s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw.on{background:var(--pine)}
+.sw.on::after{transform:translateX(18px)}
+.weg{border:0;background:none;width:36px;height:36px;border-radius:50%;color:var(--soft);font-size:20px;flex:none}
+.weg:hover{background:#fff;color:var(--red)}
+
+/* ---------- schema's van een scherm ---------- */
+.std{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;font-weight:600}
+.kies{appearance:none;border:0;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23070504' stroke-width='1.8'/%3E%3C/svg%3E") right 14px center no-repeat;border-radius:999px;padding:9px 38px 9px 16px;font-weight:700;max-width:100%;color:var(--fg)}
+.kies.groot{border:1px solid var(--line);border-radius:10px;padding:11px 40px 11px 12px;width:100%}
+.regel{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 16px 8px 10px;background:var(--panel);border-radius:var(--r)}
+.regel.uit .rk{opacity:.45}
+.rk{display:flex;align-items:center;gap:14px;border:0;background:none;padding:6px 8px;border-radius:10px;text-align:left;min-width:0}
+.rk:hover{background:#fff}
+.rk b{display:block;font-weight:700}
+.rk small{display:block;color:var(--muted);font-size:13.5px}
+.staal{width:14px;height:36px;border-radius:4px;border-left:4px solid;flex:none}
+.tl .seg.gepland{cursor:pointer}
+.tl .seg.gepland:hover{filter:brightness(.96)}
+.dagkies{display:flex;gap:6px;flex-wrap:wrap}
+.dagkies button{min-width:46px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;color:var(--muted)}
+.dagkies button:hover{border-color:var(--fg);color:var(--fg)}
+.dagkies button.on{background:var(--pine);border-color:var(--pine);color:#fff}
+.snel{display:flex;gap:14px;margin-top:2px}
+.seg2{display:inline-flex;gap:4px;padding:4px;background:var(--panel);border-radius:999px;justify-self:start}
+.seg2 button{border:0;background:none;padding:7px 16px;border-radius:999px;font-weight:600;color:var(--muted)}
+.seg2 button.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px rgba(7,5,4,.12)}
+.tijdrij{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.tijdrij input{border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-weight:600}
+.tkies{display:inline-flex;align-items:center;gap:2px;font-weight:700}
+.tkies select{appearance:none;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+
+/* ---------- Library ---------- */
+.subtabs{display:inline-flex;gap:4px;padding:4px;background:var(--panel);border-radius:999px}
+.subtabs button{border:0;background:none;padding:8px 16px;border-radius:999px;font-weight:600;color:var(--muted);white-space:nowrap}
+.subtabs button.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px rgba(7,5,4,.12)}
+.subtabs small{font-weight:600;color:var(--soft);margin-left:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.sk{background:var(--panel);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.sk .duim{width:100%;border-radius:0;cursor:pointer}
+.sk .bd{padding:14px 16px 6px;display:grid;gap:4px;flex:1;min-width:0}
+.sk input.nm{border:0;background:none;font-weight:700;font-size:15px;padding:2px 6px;margin-left:-6px;border-radius:6px;width:100%;min-width:0}
+.sk input.nm:hover{background:#fff}
+.sk input.nm:focus{outline:2px solid var(--fg);background:#fff}
+.sk .url{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sk .gebruik{font-size:12px;color:var(--muted)}
+.sk .ft{display:flex;align-items:center;justify-content:flex-end;padding:0 8px 8px}
+.sk.add{border:1px dashed #cfcac3;background:none;align-items:center;justify-content:center;min-height:220px;color:var(--muted);font-weight:700;cursor:pointer;gap:6px;text-align:center;padding:16px}
+.sk.add:hover,.sk.add.over{border-color:var(--fg);color:var(--fg)}
+.sk.add span{font-size:34px;font-weight:400;line-height:1}
+.sk.add small{font-weight:500;color:var(--muted);font-size:12.5px}
+
+/* ---------- modaal, melding ---------- */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(7,5,4,.42);display:none;align-items:center;justify-content:center;padding:24px}
+.modal.open{display:flex}
+.mbox{background:#fff;border-radius:16px;width:min(560px,100%);max-height:calc(100vh - 48px);overflow:auto;padding:28px;display:grid;gap:18px;box-shadow:0 20px 60px rgba(7,5,4,.25)}
+.mbox.breed{width:min(1080px,100%)}
+.mbox .mk{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.veld{display:grid;gap:6px}
+.veld label{font-size:13px;font-weight:700}
+.veld input{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;min-width:0}
+.veld input:focus{outline:2px solid var(--fg);border-color:transparent}
+.veld small{color:var(--muted);font-size:12.5px}
+.macties{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.kiesgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.kiesgrid button{border:0;background:var(--panel);border-radius:10px;padding:0;overflow:hidden;text-align:left;min-width:0}
+.kiesgrid button:hover{box-shadow:0 0 0 2px var(--fg)}
+.kiesgrid .duim{width:100%;border-radius:0}
+.kiesgrid b{display:block;padding:10px 12px;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:10px;overflow:hidden;background:var(--fg)}
+.uitleg{background:var(--panel);border-radius:10px;padding:14px 16px;font-size:13.5px;color:#4a4643}
+.uitleg ol{margin:6px 0 0;padding-left:18px}
+.kopie{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;margin-top:8px}
+#melding{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--fg);color:#fff;padding:12px 20px;border-radius:999px;font-weight:600;z-index:60;transition:.25s;pointer-events:none;max-width:calc(100vw - 32px)}
+#melding.aan{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+@media (max-width:980px){
+  .wrap{padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+  header.top .wrap{flex-wrap:wrap;height:auto;padding-top:12px;padding-bottom:10px;gap:10px 14px}
+  .logo{flex:1;min-width:0}
+  .wm{font-size:36px}
+  .logo #org{display:none}
+  .btn.prim{padding:9px 14px}
+  nav.tabs{order:3;flex-basis:100%;margin:0 -4px}
+  .nu,.split{grid-template-columns:minmax(0,1fr)}
+  .item{grid-template-columns:24px 80px minmax(0,1fr) 44px;row-gap:10px}
+  .item .duim{width:80px}
+  .item>.weg{grid-row:1;grid-column:4}
+  .item>.duur{grid-row:2;grid-column:3;justify-self:start}
+  .item>.sw{grid-row:2;grid-column:4}
+  .uren span:nth-child(even){display:none}
+  .state .lbl{display:none}
+  h1{font-size:26px}
+  main{padding-top:28px}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="logo"><span class="wm" aria-label="looop">l<span class="o">o</span><span class="o">o</span><span class="o">o</span>p</span><span id="org"></span></div>
+  <nav class="tabs" id="tabs">
+    <a href="#now" data-v="now">Now</a><a href="#screens" data-v="screens">Screens</a><a href="#playlists" data-v="playlists">Playlists</a><a href="#library" data-v="library">Library</a>
+  </nav>
+  <div class="pub">
+    <div class="state" id="state"></div>
+    <button class="btn prim" id="publiceer">Publish</button>
+    <button class="icoon" id="instel" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+</div></header>
+
+<main><div class="wrap" id="view"></div></main>
+<div class="modal" id="modal"><div class="mbox" id="mbox" role="dialog" aria-modal="true"></div></div>
+<div id="melding" role="status"></div>
+<input type="file" id="uploadF" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple hidden>
+
+<script>
+/* ============================================================
+   LOOOP · beheer van digitale schermen
+   Model (zoals bij gangbare signage-pakketten):
+   - Library: alles wat getoond kan worden: eigen slides (HTML), media (beeld/video), webpagina's.
+   - Playlists: een reeks items uit de library, met per item een eigen duur.
+   - Screens: elk scherm heeft een standaardplaylist en een schema met uitzonderingen.
+   Wijzigingen zijn eerst een concept in deze browser; "Publish" schrijft config.js naar GitHub.
+   ============================================================ */
+const S = window.Signage;
+const CONCEPT = "looop-concept", GHKEY = "looop-github";
+/* rustige tinten per playlist: [vlak in de tijdlijn, stip] */
+const KLEUREN = [["#d6ede9", "#2a9a91"], ["#dbe6f4", "#5c8cc7"], ["#f5ecc8", "#cba22f"], ["#f5dde3", "#d0788f"], ["#e0ecd9", "#76a666"], ["#e5e1f4", "#8474c3"], ["#d5ebf2", "#3a9cb8"]];
+const MAX_SCHERMEN = 3, MAX_MB = 25;
+const SOORT = { slide: { naam: "Slide", duur: 15 }, image: { naam: "Image", duur: 10 }, video: { naam: "Video", duur: 30 }, link: { naam: "Web page", duur: 30 } };
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const kloon = o => JSON.parse(JSON.stringify(o));
+const lees = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } };
+const schrijf = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+let gepubliceerd = S.migreer(kloon(window.SIGNAGE_CONFIG || {}));
+let cfg = S.migreer(lees(CONCEPT, null) || kloon(gepubliceerd));
+let schermId = lees("looop-scherm", null);
+const sch = () => S.schermById(cfg, schermId);
+let gh = lees(GHKEY, {}), ghSha = null, teUploaden = false;
+let view = (location.hash || "#now").slice(1), gekozen = null, weekVerschuiving = 0, libTab = "slides";
+
+/* ---------- hulp ---------- */
+const kleurIdx = id => Math.max(0, cfg.playlists.findIndex(p => p.id === id)) % KLEUREN.length;
+const kleur = id => KLEUREN[kleurIdx(id)][1], tint = id => KLEUREN[kleurIdx(id)][0];
+const duurTekst = s => s < 60 ? `${s} s` : `${Math.floor(s / 60)} min${s % 60 ? " " + (s % 60) + " s" : ""}`;
+const rondje = pl => S.speellijst(cfg, pl).reduce((t, s) => t + s.duur, 0);
+const soort = s => s.type || "slide";
+const nieuwId = (basis, lijst) => { let id = (basis || "item").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "item", k = id, n = 2; while (lijst.some(x => x.id === k)) k = id + "-" + n++; return k; };
+const DAGNAAM = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DGS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const MND = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const datumKort = t => { const [y, m, d] = t.split("-").map(Number); return `${d} ${MND[m - 1]}`; };
+const domein = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return u; } };
+const ICON = {
+  tv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/></svg>',
+  grip: '<svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor"><circle cx="3" cy="3" r="1.6"/><circle cx="9" cy="3" r="1.6"/><circle cx="3" cy="9" r="1.6"/><circle cx="9" cy="9" r="1.6"/><circle cx="3" cy="15" r="1.6"/><circle cx="9" cy="15" r="1.6"/></svg>'
+};
+
+/* voorbeeldbeeldje van een library-item */
+function duim(s) {
+  const t = soort(s);
+  if (t === "image") return `<span class="duim" style="background-image:url('${esc(s.url)}')"></span>`;
+  if (t === "video") return `<span class="duim donker">${ICON.play}</span>`;
+  if (t === "link") return `<span class="duim web">${ICON.web}</span>`;
+  return `<span class="duim" style="background-image:url('thumbs/${esc(s.id)}.png')"></span>`;
+}
+const omschrijving = s => soort(s) === "link" ? domein(s.url) : soort(s) === "slide" ? s.url : (s.bestand || s.url.split("/").pop());
+
+function dagenTekst(d) {
+  const ds = [...new Set(d && d.length ? d : [1, 2, 3, 4, 5, 6, 7])].sort(), k = ds.join("");
+  const KORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  if (k === "1234567") return "Every day";
+  if (k === "67") return "Weekends";
+  const delen = [];                                           // opeenvolgende dagen samenvoegen: ma–za
+  for (let i = 0; i < ds.length;) { let j = i; while (j + 1 < ds.length && ds[j + 1] === ds[j] + 1) j++;
+    delen.push(j - i >= 2 ? `${KORT[ds[i] - 1]} – ${KORT[ds[j] - 1]}` : ds.slice(i, j + 1).map(x => KORT[x - 1]).join(", ")); i = j + 1; }
+  return delen.join(", ");
+}
+function regelTekst(r) {
+  const t = (r.van || "00:00") === (r.tot || "00:00") ? "all day" : `${r.van} – ${r.tot}`;
+  const p = r.vanaf || r.totDatum ? ` · ${r.vanaf ? datumKort(r.vanaf) : "…"} – ${r.totDatum ? datumKort(r.totDatum) : "…"}` : "";
+  return `${dagenTekst(r.dagen)}, ${t}${p}`;
+}
+/* waar en wanneer speelt een playlist, per scherm */
+function gebruikPl(id) {
+  return cfg.schermen.map(sc => {
+    if (sc.standaard === id) return { sc, t: "default" };
+    const r = sc.schema.filter(r => r.playlist === id && r.aan !== false);
+    return r.length ? { sc, t: r.map(regelTekst).join(" · ") } : null;
+  }).filter(Boolean);
+}
+
+/* ---------- concept & status ---------- */
+const gewijzigd = () => JSON.stringify(cfg) !== JSON.stringify(gepubliceerd);
+function bewaar(opnieuw = true) {
+  teUploaden = false;
+  schrijf(CONCEPT, gewijzigd() ? cfg : null);
+  status();
+  if (opnieuw) render();
+}
+function status() {
+  const d = gewijzigd();
+  $("#state").className = "state" + (d ? " dirty" : "");
+  $("#state").innerHTML = d ? `<i></i><span class="lbl">Unpublished changes ·</span> <button id="herstel">Discard</button>`
+    : teUploaden ? `<i style="background:#e9a23b"></i><span class="lbl">Downloaded · upload pending</span>` : `<i></i><span class="lbl">Everything is live</span>`;
+  $("#publiceer").disabled = !d;
+  if (d) $("#herstel").onclick = async () => { if (await bevestig("Discard changes?", "Everything you changed since the last publish will be lost.", "Discard")) { cfg = kloon(gepubliceerd); bewaar(); melding("Changes discarded"); } };
+}
+function melding(t) { const m = $("#melding"); m.textContent = t; m.classList.add("aan"); clearTimeout(m.t); m.t = setTimeout(() => m.classList.remove("aan"), 2800); }
+
+/* ---------- navigatie ---------- */
+function ga(v) { view = v; if (location.hash !== "#" + v) history.replaceState(null, "", "#" + v); render(); }
+window.addEventListener("hashchange", () => ga((location.hash || "#now").slice(1)));
+function render() {
+  document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.v === view));
+  ({ now: viewNu, screens: viewScreens, playlists: viewPlaylists, library: viewLibrary }[view] || viewNu)();
+}
+function kiesScherm(id) { schermId = id; schrijf("looop-scherm", id); }
+const spelerLink = sc => new URL("index.html" + (cfg.schermen[0].id === sc.id ? "" : "?scherm=" + encodeURIComponent(sc.id)), location.href).href;
+
+/* ============================================================ NOW */
+function volgendeWissel(van, sc) {
+  const huidig = (S.actievePlaylist(cfg, van, sc.id).playlist || {}).id;
+  const t = new Date(van); t.setSeconds(0, 0); t.setMinutes(Math.ceil(t.getMinutes() / 15) * 15);
+  for (let i = 0; i < 8 * 96; i++, t.setMinutes(t.getMinutes() + 15)) {
+    const p = S.actievePlaylist(cfg, t, sc.id).playlist;
+    if ((p || {}).id !== huidig) return { tijd: new Date(t), pl: p };
+  }
+  return null;
+}
+function viewNu() {
+  const nu = new Date(), sc = sch(), { playlist: pl, regel } = S.actievePlaylist(cfg, nu, sc.id);
+  const lijst = S.speellijst(cfg, pl), w = volgendeWissel(nu, sc);
+  const waarom = !pl ? "No playlist is set for this screen." : regel ? `Scheduled · ${regelTekst(regel)}` : "Default playlist · nothing else is scheduled now";
+  const wissel = w ? `${w.tijd.toDateString() === nu.toDateString() ? "Today" : DAGNAAM[S.dag(w.tijd) - 1]} at ${S.hm(w.tijd)}` : "";
+  const vandaag = [...new Set(segmenten(nu, sc).map(s => s.id).filter(Boolean))];
+  $("#view").innerHTML = `
+    ${cfg.schermen.length > 1 ? `<div class="schermen">${cfg.schermen.map(x => `<button class="${x.id === sc.id ? "on" : ""}" data-sc="${x.id}">${ICON.tv}${esc(x.naam)}</button>`).join("")}</div>` : ""}
+    <section class="vandaagblok">
+      <div class="weekkop"><span class="kicker">Today on ${esc(sc.naam)}</span>
+        ${w ? `<span class="straks">Next: ${wissel} <span class="dot" style="background:${w.pl ? kleur(w.pl.id) : "#ccc"}"></span>${esc(w.pl ? w.pl.naam : "nothing")}</span>` : ""}</div>
+      ${tijdlijn(nu, sc)}${urenAs()}
+      <div class="legenda">${vandaag.map(id => { const p = S.playlistById(cfg, id); return `<span><i class="dot" style="background:${kleur(id)}"></i>${esc(p.naam)}</span>`; }).join("")}
+        <button class="lnk" id="naarSc" style="margin-left:auto">Edit schedule</button></div>
+    </section>
+    <div class="nu">
+      <div class="scherm" id="scherm"><iframe id="spelerVb" title="Screen preview"></iframe></div>
+      <div class="nuinfo">
+        <div><span class="kicker">Playing now</span>
+          <h1 style="margin-top:8px">${pl ? `<span class="dot" style="background:${kleur(pl.id)}"></span>${esc(pl.naam)}` : "Nothing"}</h1>
+          <p class="sub" style="margin:6px 0 0">${esc(waarom)}</p></div>
+        <ol class="regels" id="nuLijst">${lijst.map((s, i) => `<li data-i="${i}"><span class="balk"></span><b>${esc(s.naam)}</b><span>${s.duur} s</span></li>`).join("") || `<li>No items<span></span></li>`}</ol>
+        ${pl ? `<div class="sub" style="font-size:13px">One loop takes ${duurTekst(rondje(pl))} · <button class="lnk" id="naarPl">Edit playlist</button></div>` : ""}
+      </div>
+    </div>`;
+  document.querySelectorAll("[data-sc]").forEach(b => b.onclick = () => { kiesScherm(b.dataset.sc); render(); });
+  $("#naarSc").onclick = () => ga("screens");
+  if ($("#naarPl")) $("#naarPl").onclick = () => { gekozen = pl.id; ga("playlists"); };
+  speler($("#spelerVb"), $("#scherm"), sc.id);
+}
+/* de speler meldt welke slide speelt: die markeren we in de lijst, met een balkje dat vol loopt */
+window.addEventListener("message", e => {
+  if (!e.data || e.data.type !== "looop-speelt") return;
+  document.querySelectorAll("#nuLijst li").forEach(li => {
+    const aan = +li.dataset.i === e.data.index, b = li.querySelector(".balk");
+    li.classList.toggle("speelt", aan);
+    if (b) { b.style.transition = "none"; b.style.width = "0"; if (aan) { b.offsetWidth; b.style.transition = `width ${e.data.duur}s linear`; b.style.width = "100%"; } }
+  });
+});
+
+/* playlist-segmenten van één dag (stappen van 15 min) */
+function segmenten(dag, sc) {
+  const d0 = new Date(dag); d0.setHours(0, 0, 0, 0);
+  const seg = [];
+  for (let m = 0; m < 1440; m += 15) {
+    const a = S.actievePlaylist(cfg, new Date(d0.getTime() + m * 6e4), sc.id), p = a.playlist, id = p ? p.id : null, rid = a.regel ? a.regel.id : "";
+    const l = seg[seg.length - 1];
+    if (l && l.id === id && l.rid === rid) l.tot = m + 15; else seg.push({ id, rid, naam: p ? p.naam : "", van: m, tot: m + 15 });
+  }
+  return seg;
+}
+const uur = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+function tijdlijn(dag, sc) {
+  const nu = new Date(), toon = dag.toDateString() === nu.toDateString();
+  return `<div class="tl">${segmenten(dag, sc).map(s => { const c = s.id ? tint(s.id) : "transparent"; return `<div class="seg ${s.rid ? "gepland" : ""}" data-regel="${s.rid}" title="${esc(s.naam)} · ${uur(s.van)} – ${uur(s.tot)}" style="left:${s.van / 14.4}%;width:${(s.tot - s.van) / 14.4}%;background:${c}">${(s.tot - s.van) >= 150 ? esc(s.naam) : ""}</div>`; }).join("")}
+    ${toon ? `<div class="nuL" style="left:${(nu.getHours() * 60 + nu.getMinutes()) / 14.4}%"></div>` : ""}</div>`;
+}
+const urenAs = () => `<div class="uren">${[0, 3, 6, 9, 12, 15, 18, 21, 24].map(h => `<span style="left:${h / 24 * 100}%">${String(h).padStart(2, "0")}:00</span>`).join("")}</div>`;
+
+/* de speler als voorbeeld in een kader, geschaald naar de breedte; krijgt het concept via postMessage */
+let stuurFn = null;
+function speler(frame, kader, scId, plId) {
+  const schaal = () => { frame.style.transform = `scale(${kader.clientWidth / 1920})`; };
+  schaal(); new ResizeObserver(schaal).observe(kader);
+  if (stuurFn) window.removeEventListener("message", stuurFn);
+  stuurFn = e => { if (e.source === frame.contentWindow && e.data && e.data.type === "looop-speler-klaar") frame.contentWindow.postMessage({ type: "looop-config", cfg: kloon(cfg) }, "*"); };
+  window.addEventListener("message", stuurFn);
+  frame.src = "index.html?preview&scherm=" + encodeURIComponent(scId) + (plId ? "&playlist=" + encodeURIComponent(plId) : "");
+}
+
+/* ============================================================ SCREENS */
+function viewScreens() {
+  const sc = sch();
+  const opties = sel => cfg.playlists.map(p => `<option value="${p.id}" ${p.id === sel ? "selected" : ""}>${esc(p.naam)}</option>`).join("");
+  const maandag = new Date(); maandag.setHours(12, 0, 0, 0); maandag.setDate(maandag.getDate() - (S.dag(maandag) - 1) + weekVerschuiving * 7);
+  const dagen = [...Array(7)].map((_, i) => { const d = new Date(maandag); d.setDate(d.getDate() + i); return d; });
+  $("#view").innerHTML = `
+    <div class="kop"><div><h1>Screens</h1><p>Each screen plays its default playlist. Add a schedule to play another playlist at set times. When two schedules overlap, the top one wins.</p></div></div>
+    <div class="split">
+      <div class="lijst">
+        ${cfg.schermen.map(x => { const p = S.actievePlaylist(cfg, new Date(), x.id).playlist; return `<button class="lk ${x.id === sc.id ? "on" : ""}" data-id="${x.id}">
+          ${ICON.tv}<span><b>${esc(x.naam)}</b><small>Now: ${esc(p ? p.naam : "nothing")}</small></span><span></span></button>`; }).join("")}
+        ${cfg.schermen.length < MAX_SCHERMEN ? `<button class="nieuw" id="nieuwSc">+ Add screen</button>` : `<small class="sub" style="padding:0 16px;font-size:12.5px">Maximum of ${MAX_SCHERMEN} screens.</small>`}
+      </div>
+      <div class="editor">
+        <div class="edkop">
+          <input class="naamveld" id="scNaam" value="${esc(sc.naam)}" aria-label="Screen name">
+          <button class="btn klein" id="scLink">Copy TV link</button>
+          <button class="btn klein tekst" id="scVb">Preview</button>
+          ${cfg.schermen.length > 1 ? `<button class="btn klein tekst gevaar" id="scDel">Delete</button>` : ""}
+        </div>
+
+        <div class="sectie">
+          <span class="kicker">Default playlist</span>
+          <div class="card std"><span class="dot" style="background:${kleur(sc.standaard)}"></span><select class="kies" id="std" aria-label="Default playlist">${opties(sc.standaard)}</select>
+            <span class="sub" style="font-weight:500">plays whenever nothing else is scheduled</span></div>
+        </div>
+
+        <div class="sectie">
+          <span class="kicker">Schedules</span>
+          <div class="items" id="regels">
+            ${sc.schema.map((r, i) => { const p = S.playlistById(cfg, r.playlist);
+              return `<div class="regel ${r.aan === false ? "uit" : ""}" data-i="${i}">
+                <span class="grip" title="Drag to change priority">${ICON.grip}</span>
+                <button class="rk" data-edit title="Edit schedule"><span class="staal" style="background:${tint(r.playlist)};border-color:${kleur(r.playlist)}"></span>
+                  <span><b>${esc(p ? p.naam : "?")}</b><small>${esc(regelTekst(r))}</small></span></button>
+                <button class="sw ${r.aan === false ? "" : "on"}" title="${r.aan === false ? "Paused" : "Active"}" aria-label="Active or paused"></button>
+              </div>`; }).join("") || `<div class="leegvak">Nothing scheduled. ${esc(sc.naam)} always plays its default playlist.</div>`}
+          </div>
+          <button class="nieuw" id="regelErbij">+ Schedule a playlist</button>
+        </div>
+
+        <div class="sectie week">
+          <div class="weekkop"><div><span class="kicker">Week overview</span>
+              <h2 style="margin-top:6px">${datumKort(S.ymd(dagen[0]))} – ${datumKort(S.ymd(dagen[6]))}</h2></div>
+            <div class="nav"><button class="icoon" id="wTerug" title="Previous week" aria-label="Previous week">‹</button>
+              ${weekVerschuiving ? `<button class="btn klein tekst" id="wNu">This week</button>` : ""}
+              <button class="icoon" id="wVerder" title="Next week" aria-label="Next week">›</button></div></div>
+          <div id="weekGrid">${dagen.map(d => `<div class="wrij"><div class="dg">${DAGNAAM[S.dag(d) - 1]}<small>${datumKort(S.ymd(d))}</small></div>${tijdlijn(d, sc)}</div>`).join("")}
+            <div class="wrij"><div></div>${urenAs()}</div></div>
+          <div class="legenda">${cfg.playlists.filter(p => p.id === sc.standaard || sc.schema.some(r => r.playlist === p.id)).map(p => `<span><i class="dot" style="background:${kleur(p.id)}"></i>${esc(p.naam)}</span>`).join("")}
+            <span style="margin-left:auto;font-weight:500">Click a block to edit it</span></div>
+        </div>
+      </div>
+    </div>`;
+
+  document.querySelectorAll(".lk[data-id]").forEach(b => b.onclick = () => { kiesScherm(b.dataset.id); render(); });
+  if ($("#nieuwSc")) $("#nieuwSc").onclick = async () => {
+    const naam = await vraagNaam("Add screen", "Screen name", "Screen " + (cfg.schermen.length + 1)); if (!naam) return;
+    const id = nieuwId(naam, cfg.schermen); cfg.schermen.push({ id, naam, standaard: cfg.schermen[0].standaard, schema: [] }); kiesScherm(id); bewaar(); melding("Screen added");
+  };
+  $("#scNaam").onchange = e => { sc.naam = e.target.value.trim() || sc.naam; bewaar(); };
+  $("#scLink").onclick = async () => { const l = spelerLink(sc); try { await navigator.clipboard.writeText(l); melding("TV link copied"); } catch (x) { info("TV link for " + sc.naam, `Open this address on the TV:<input class="kopie" readonly value="${esc(l)}" onclick="this.select()">`); } };
+  $("#scVb").onclick = () => voorbeeld(sc.naam, "speler", sc.id);
+  if ($("#scDel")) $("#scDel").onclick = async () => { if (!await bevestig(`Delete "${sc.naam}"?`, "Its schedules will be lost. Playlists and the library stay.")) return; cfg.schermen = cfg.schermen.filter(x => x !== sc); kiesScherm(cfg.schermen[0].id); bewaar(); melding("Screen deleted"); };
+  $("#std").onchange = e => { sc.standaard = e.target.value; bewaar(); };
+  $("#regelErbij").onclick = () => regelEditor(sc, null);
+  $("#wTerug").onclick = () => { weekVerschuiving--; render(); };
+  $("#wVerder").onclick = () => { weekVerschuiving++; render(); };
+  if ($("#wNu")) $("#wNu").onclick = () => { weekVerschuiving = 0; render(); };
+  document.querySelectorAll("#regels .regel").forEach(el => {
+    const r = sc.schema[+el.dataset.i];
+    el.querySelector("[data-edit]").onclick = () => regelEditor(sc, r);
+    el.querySelector(".sw").onclick = () => { if (r.aan === false) delete r.aan; else r.aan = false; bewaar(); melding(r.aan === false ? "Schedule paused" : "Schedule active"); };
+  });
+  document.querySelectorAll("#weekGrid .seg").forEach(s => s.onclick = () => {
+    const r = sc.schema.find(x => x.id === s.dataset.regel);
+    if (r) regelEditor(sc, r); else $("#std").focus();
+  });
+  sorteer($("#regels"), ".regel", (van, naar) => { const [x] = sc.schema.splice(van, 1); sc.schema.splice(naar, 0, x); bewaar(); });
+}
+
+/* venster om een schema te maken of te wijzigen */
+function regelEditor(sc, bestaand) {
+  if (!cfg.playlists.length) return melding("Create a playlist first");
+  const r = bestaand ? kloon(bestaand) : { id: nieuwId("regel", sc.schema), playlist: (cfg.playlists.find(p => p.id !== sc.standaard) || cfg.playlists[0]).id, dagen: [1, 2, 3, 4, 5], van: "08:00", tot: "09:00" };
+  if (!r.dagen || !r.dagen.length) r.dagen = [1, 2, 3, 4, 5, 6, 7];
+  const UREN = [...Array(24)].map((_, h) => String(h).padStart(2, "0")), MIN = ["00", "15", "30", "45"];
+  const tijdKies = (k, w) => `<span class="tkies"><select data-t="${k}h" aria-label="Hour">${UREN.map(h => `<option ${w.slice(0, 2) === h ? "selected" : ""}>${h}</option>`).join("")}</select>:<select data-t="${k}m" aria-label="Minutes">${MIN.map(m => `<option ${w.slice(3) === m ? "selected" : ""}>${m}</option>`).join("")}</select></span>`;
+  const teken = () => {
+    const heel = (r.van || "00:00") === (r.tot || "00:00"), per = !!(r.vanaf || r.totDatum || r._per);
+    const nacht = !heel && r.tot < r.van;
+    open(`<div class="mk"><h2>${bestaand ? "Edit schedule" : "Schedule a playlist"}</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+      <div class="veld"><label for="rPl">Playlist</label><select class="kies groot" id="rPl">${cfg.playlists.map(p => `<option value="${p.id}" ${p.id === r.playlist ? "selected" : ""}>${esc(p.naam)}</option>`).join("")}</select></div>
+      <div class="veld"><label>Days</label>
+        <div class="dagkies">${DGS.map((d, j) => `<button class="${r.dagen.includes(j + 1) ? "on" : ""}" data-dag="${j + 1}" aria-pressed="${r.dagen.includes(j + 1)}">${d}</button>`).join("")}</div>
+        <div class="snel">${[["Every day", [1, 2, 3, 4, 5, 6, 7]], ["Weekdays", [1, 2, 3, 4, 5]], ["Weekends", [6, 7]]].map(([n, d]) => `<button class="lnk" data-snel="${d.join("")}">${n}</button>`).join("")}</div></div>
+      <div class="veld"><label>Time</label>
+        <div class="seg2"><button class="${heel ? "on" : ""}" data-heel="1">All day</button><button class="${heel ? "" : "on"}" data-heel="0">Between</button></div>
+        ${heel ? "" : `<div class="tijdrij">${tijdKies("van", r.van)} <span class="sub">to</span> ${tijdKies("tot", r.tot)}</div>
+          ${nacht ? `<small>Runs past midnight: until ${r.tot} the next morning.</small>` : ""}`}</div>
+      <div class="veld"><label>Dates</label>
+        <div class="seg2"><button class="${per ? "" : "on"}" data-per="0">Always</button><button class="${per ? "on" : ""}" data-per="1">Only between dates</button></div>
+        ${per ? `<div class="tijdrij"><input type="date" id="rVan" value="${r.vanaf || ""}" aria-label="First day"> <span class="sub">to</span> <input type="date" id="rTot" value="${r.totDatum || ""}" aria-label="Last day"></div>` : ""}</div>
+      <div class="uitleg" id="rZin"></div>
+      <div class="macties" style="justify-content:space-between">${bestaand ? `<button class="btn tekst gevaar" id="rDel">Delete schedule</button>` : "<span></span>"}
+        <span style="display:flex;gap:8px"><button class="btn" data-sluit>Cancel</button><button class="btn prim" id="rOk">${bestaand ? "Save" : "Add schedule"}</button></span></div>`);
+    const zin = () => { const p = S.playlistById(cfg, r.playlist); $("#rZin").innerHTML = `<b>${esc(p.naam)}</b> plays on ${esc(sc.naam)}: ${esc(regelTekst(r))}.`; };
+    zin();
+    $("#rPl").onchange = e => { r.playlist = e.target.value; zin(); };
+    document.querySelectorAll("#mbox [data-dag]").forEach(b => b.onclick = () => {
+      const d = +b.dataset.dag, set = new Set(r.dagen); set.has(d) ? set.delete(d) : set.add(d);
+      if (!set.size) return melding("Pick at least one day");
+      r.dagen = [...set].sort(); teken();
+    });
+    document.querySelectorAll("#mbox [data-snel]").forEach(b => b.onclick = () => { r.dagen = [...b.dataset.snel].map(Number); teken(); });
+    document.querySelectorAll("#mbox [data-heel]").forEach(b => b.onclick = () => { if (b.dataset.heel === "1") { r.van = r.tot = "00:00"; } else if (r.van === r.tot) { r.van = "08:00"; r.tot = "09:00"; } teken(); });
+    document.querySelectorAll("#mbox [data-t]").forEach(x => x.onchange = () => {
+      const g = k => $(`#mbox [data-t="${k}"]`).value;
+      r.van = g("vanh") + ":" + g("vanm"); r.tot = g("toth") + ":" + g("totm");
+      if (r.van === r.tot) { melding("Start and end are the same: choose All day instead"); }
+      teken();
+    });
+    document.querySelectorAll("#mbox [data-per]").forEach(b => b.onclick = () => { if (b.dataset.per === "1") r._per = true; else { delete r._per; delete r.vanaf; delete r.totDatum; } teken(); });
+    if ($("#rVan")) { $("#rVan").onchange = e => { e.target.value ? r.vanaf = e.target.value : delete r.vanaf; zin(); }; $("#rTot").onchange = e => { e.target.value ? r.totDatum = e.target.value : delete r.totDatum; zin(); }; }
+    if ($("#rDel")) $("#rDel").onclick = () => { sc.schema = sc.schema.filter(x => x.id !== r.id); sluit(); bewaar(); melding("Schedule deleted"); };
+    $("#rOk").onclick = () => {
+      delete r._per;
+      if (r.vanaf && r.totDatum && r.totDatum < r.vanaf) return melding("The last day is before the first day");
+      const i = sc.schema.findIndex(x => x.id === r.id);
+      if (i >= 0) sc.schema[i] = r; else sc.schema.unshift(r);
+      sluit(); bewaar(); melding(bestaand ? "Schedule saved" : "Schedule added");
+    };
+  };
+  teken();
+}
+
+/* ============================================================ PLAYLISTS */
+function viewPlaylists() {
+  if (!cfg.playlists.some(p => p.id === gekozen)) gekozen = sch().standaard || (cfg.playlists[0] || {}).id;
+  const pl = cfg.playlists.find(p => p.id === gekozen);
+  $("#view").innerHTML = `
+    <div class="kop"><div><h1>Playlists</h1><p>A playlist is a set of items from the library that play one after another, each for its own duration. The same item can have a different duration in another playlist.</p></div></div>
+    <div class="split">
+      <div class="lijst">
+        ${cfg.playlists.map(p => `<button class="lk ${p.id === gekozen ? "on" : ""}" data-id="${p.id}">
+            <span class="dot" style="background:${kleur(p.id)}"></span>
+            <span><b>${esc(p.naam)}</b><small>${S.speellijst(cfg, p).length} item${S.speellijst(cfg, p).length === 1 ? "" : "s"} · ${duurTekst(rondje(p))}</small></span>
+            ${cfg.schermen.some(sc => sc.standaard === p.id) ? `<span class="tag">Default</span>` : gebruikPl(p.id).length ? `<span class="tag licht">Scheduled</span>` : ""}
+          </button>`).join("")}
+        <button class="nieuw" id="nieuwePl">+ New playlist</button>
+      </div>
+      ${pl ? editor(pl) : `<div class="leegvak">Create your first playlist.</div>`}
+    </div>`;
+  document.querySelectorAll(".lk[data-id]").forEach(b => b.onclick = () => { gekozen = b.dataset.id; render(); });
+  $("#nieuwePl").onclick = async () => {
+    const naam = await vraagNaam("New playlist", "Name", "New playlist"); if (!naam) return;
+    const id = nieuwId(naam, cfg.playlists); cfg.playlists.push({ id, naam, items: [] }); gekozen = id; bewaar(); melding("Playlist created");
+  };
+  if (pl) koppelEditor(pl);
+}
+function editor(pl) {
+  const g = gebruikPl(pl.id);
+  const speelt = !g.length ? "Not playing on any screen yet." : "Plays on " + g.map(x => `${x.sc.naam} (${x.t})`).join(", ") + ".";
+  return `<div class="editor">
+    <div class="edkop">
+      <input class="naamveld" id="plNaam" value="${esc(pl.naam)}" aria-label="Playlist name">
+      <button class="btn klein" id="plVb">Preview</button>
+      <button class="btn klein tekst" id="plDup">Duplicate</button>
+      <button class="btn klein tekst gevaar" id="plDel">Delete</button>
+    </div>
+    <div class="edmeta"><span class="dot" style="background:${kleur(pl.id)}"></span><span style="flex:1;min-width:0">${esc(speelt)}</span>
+      <button class="lnk" id="plSch">${g.length ? "Edit schedule" : "Schedule on a screen"}</button></div>
+    <div class="items" id="items">
+      ${pl.items.map((it, i) => { const s = S.slideById(cfg, it.slide); if (!s) return "";
+        return `<div class="item ${it.aan === false ? "uit" : ""}" data-i="${i}">
+          <span class="grip" title="Drag to reorder">${ICON.grip}</span>
+          ${duim(s)}
+          <span><b>${esc(s.naam)}</b><small><span class="soort">${SOORT[soort(s)].naam}</span>${esc(omschrijving(s))}</small></span>
+          <span class="duur" title="How long this item shows in this playlist"><button data-d="-1" aria-label="Shorter">−</button><span>${S.itemDuur(cfg, it)} s</span><button data-d="1" aria-label="Longer">+</button></span>
+          <button class="sw ${it.aan === false ? "" : "on"}" title="${it.aan === false ? "Off: skipped" : "On"}" aria-label="On or off"></button>
+          <button class="weg" title="Remove from this playlist" aria-label="Remove">×</button>
+        </div>`; }).join("") || `<div class="leegvak">This playlist is empty.</div>`}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <button class="btn zwart" id="itemErbij">+ Add from library</button>
+      <span class="sub">One loop takes <b style="color:var(--fg)">${duurTekst(rondje(pl))}</b></span>
+    </div>
+  </div>`;
+}
+/* duur in stappen: 1 s onder 10 s, daarboven 5 s */
+const stap = (d, r) => r > 0 ? (d < 10 ? d + 1 : d + 5 - d % 5) : (d <= 10 ? d - 1 : (d % 5 ? d - d % 5 : d - 5));
+function koppelEditor(pl) {
+  $("#plNaam").onchange = e => { pl.naam = e.target.value.trim() || pl.naam; bewaar(); };
+  $("#plVb").onclick = () => voorbeeld(pl.naam, "speler", sch().id, pl.id);
+  $("#plSch").onclick = () => { const g = gebruikPl(pl.id); if (g.length) kiesScherm(g[0].sc.id); ga("screens"); };
+  $("#plDup").onclick = () => { const k = kloon(pl); k.naam = pl.naam + " (copy)"; k.id = nieuwId(k.naam, cfg.playlists); cfg.playlists.splice(cfg.playlists.indexOf(pl) + 1, 0, k); gekozen = k.id; bewaar(); melding("Copy created"); };
+  $("#plDel").onclick = async () => {
+    const std = cfg.schermen.filter(sc => sc.standaard === pl.id);
+    if (std.length) return info("This playlist can't be deleted yet", `It is the default playlist of ${esc(std.map(sc => sc.naam).join(" and "))}. Choose another default under Screens first.`);
+    const n = cfg.schermen.reduce((t, sc) => t + sc.schema.filter(r => r.playlist === pl.id).length, 0);
+    if (!await bevestig(`Delete "${pl.naam}"?`, n ? `It is scheduled ${n} time${n > 1 ? "s" : ""}; those schedules will be deleted too.` : "The items stay in the library.")) return;
+    cfg.playlists = cfg.playlists.filter(p => p !== pl); cfg.schermen.forEach(sc => sc.schema = sc.schema.filter(r => r.playlist !== pl.id)); gekozen = null; bewaar(); melding("Playlist deleted");
+  };
+  $("#itemErbij").onclick = () => kiesItem(pl);
+  document.querySelectorAll("#items .item").forEach(el => {
+    const it = pl.items[+el.dataset.i];
+    el.querySelectorAll(".duur button").forEach(b => b.onclick = () => { it.duur = Math.min(600, Math.max(3, stap(S.itemDuur(cfg, it), +b.dataset.d))); bewaar(); });
+    el.querySelector(".sw").onclick = () => { if (it.aan === false) delete it.aan; else it.aan = false; bewaar(); };
+    el.querySelector(".weg").onclick = () => { pl.items.splice(+el.dataset.i, 1); bewaar(); };
+  });
+  sorteer($("#items"), ".item", (van, naar) => { const [x] = pl.items.splice(van, 1); pl.items.splice(naar, 0, x); bewaar(); });
+}
+function kiesItem(pl, tab = "slide") {
+  const tabs = [["slide", "Slides"], ["image,video", "Media"], ["link", "Web pages"]];
+  const lijst = cfg.slides.filter(s => tab.split(",").includes(soort(s)));
+  open(`<div class="mk"><h2>Add to ${esc(pl.naam)}</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+    <div><div class="subtabs">${tabs.map(([k, n]) => `<button class="${k === tab ? "on" : ""}" data-tab="${k}">${n}</button>`).join("")}</div></div>
+    ${lijst.length ? `<div class="kiesgrid">${lijst.map(s => `<button data-id="${s.id}">${duim(s)}<b>${esc(s.naam)}</b></button>`).join("")}</div>`
+      : `<div class="leegvak">Nothing here yet. Add it in the <button class="lnk" data-sluit id="naarLib">Library</button>.</div>`}`, true);
+  document.querySelectorAll("#mbox [data-tab]").forEach(b => b.onclick = () => kiesItem(pl, b.dataset.tab));
+  if ($("#naarLib")) $("#naarLib").onclick = () => { libTab = tab === "link" ? "links" : tab === "slide" ? "slides" : "media"; ga("library"); };
+  document.querySelectorAll(".kiesgrid button").forEach(b => b.onclick = () => {
+    const s = S.slideById(cfg, b.dataset.id);
+    pl.items.push({ slide: s.id, duur: s.duur || SOORT[soort(s)].duur }); sluit(); bewaar(); melding(`${s.naam} added`);
+  });
+}
+
+/* slepen om te sorteren (muis en aanraking) */
+function sorteer(lijst, sel, klaar) {
+  lijst.querySelectorAll(".grip").forEach(g => g.onpointerdown = e => {
+    const el = g.closest(sel), items = [...lijst.querySelectorAll(sel)], van = items.indexOf(el);
+    const y0 = e.clientY, h = el.offsetHeight + 8; let naar = van;
+    el.classList.add("sleep"); g.setPointerCapture(e.pointerId);
+    g.onpointermove = ev => {
+      const dy = ev.clientY - y0; el.style.transform = `translateY(${dy}px)`;
+      naar = Math.max(0, Math.min(items.length - 1, van + Math.round(dy / h)));
+      items.forEach((x, i) => { if (x === el) return; let s = 0; if (van < naar && i > van && i <= naar) s = -h; if (van > naar && i < van && i >= naar) s = h; x.style.transition = "transform .15s"; x.style.transform = s ? `translateY(${s}px)` : ""; });
+    };
+    g.onpointerup = g.onpointercancel = () => {
+      g.onpointermove = g.onpointerup = null; items.forEach(x => { x.style.transform = ""; x.style.transition = ""; }); el.classList.remove("sleep");
+      if (naar !== van) klaar(van, naar);
+    };
+  });
+}
+
+/* ============================================================ LIBRARY */
+function viewLibrary() {
+  const gebruik = id => cfg.playlists.filter(p => p.items.some(i => i.slide === id)).map(p => p.naam);
+  const tel = t => cfg.slides.filter(s => t.includes(soort(s))).length;
+  const TABS = { slides: { soorten: ["slide"], uitleg: "Your own designed screens (HTML), such as the programme, weather and firing ranges." },
+    media: { soorten: ["image", "video"], uitleg: "Images and videos, for example a poster made in Canva. Shown full screen." },
+    links: { soorten: ["link"], uitleg: "External web pages. Some websites don't allow being shown inside another page: use Preview to check." } };
+  const t = TABS[libTab] || TABS.slides, lijst = cfg.slides.filter(s => t.soorten.includes(soort(s)));
+  const add = { slides: `<button class="sk add" id="libAdd"><span>+</span>Add slide</button>`,
+    media: `<button class="sk add" id="libAdd"><span>+</span>Upload images or videos<small>or drop files here · JPG, PNG, MP4 · max ${MAX_MB} MB</small></button>`,
+    links: `<button class="sk add" id="libAdd"><span>+</span>Add web page</button>` }[libTab] || "";
+  $("#view").innerHTML = `
+    <div class="kop"><div><h1>Library</h1><p>Everything that can be shown on a screen. Add items here, then put them in a playlist.</p></div></div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+      <div class="subtabs">${[["slides", "Slides", tel(["slide"])], ["media", "Media", tel(["image", "video"])], ["links", "Web pages", tel(["link"])]].map(([k, n, c]) => `<button class="${k === libTab ? "on" : ""}" data-tab="${k}">${n}<small>${c}</small></button>`).join("")}</div>
+      <span class="sub" style="font-size:13.5px;flex:1;min-width:220px">${t.uitleg}</span>
+    </div>
+    <div class="grid">
+      ${lijst.map(s => { const g = gebruik(s.id); return `<div class="sk" data-id="${s.id}">
+        ${duim(s)}
+        <div class="bd"><input class="nm" value="${esc(s.naam)}" aria-label="Name"><span class="url"><span class="soort">${SOORT[soort(s)].naam}</span>${esc(omschrijving(s))}</span>
+          <span class="gebruik">${g.length ? "In " + g.map(esc).join(", ") : "Not in a playlist yet"}</span></div>
+        <div class="ft"><button class="btn klein tekst" data-vb>Preview</button><button class="btn klein tekst gevaar" data-del>Delete</button></div>
+      </div>`; }).join("")}
+      ${add}
+    </div>`;
+  document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { libTab = b.dataset.tab; render(); });
+  document.querySelectorAll(".sk[data-id]").forEach(el => {
+    const s = S.slideById(cfg, el.dataset.id);
+    el.querySelector(".duim").onclick = el.querySelector("[data-vb]").onclick = () => voorbeeld(s.naam, s);
+    el.querySelector(".nm").onchange = e => { s.naam = e.target.value.trim() || s.naam; bewaar(); };
+    el.querySelector("[data-del]").onclick = async () => {
+      const g = gebruik(s.id);
+      if (!await bevestig(`Delete "${s.naam}"?`, g.length ? `It will also be removed from ${g.join(", ")}.` : "It isn't used in any playlist.")) return;
+      cfg.slides = cfg.slides.filter(x => x !== s); cfg.playlists.forEach(p => p.items = p.items.filter(i => i.slide !== s.id)); bewaar(); melding("Deleted");
+    };
+  });
+  const knop = $("#libAdd");
+  if (libTab === "slides") knop.onclick = nieuweSlide;
+  if (libTab === "links") knop.onclick = nieuweLink;
+  if (libTab === "media") {
+    knop.onclick = () => $("#uploadF").click();
+    knop.ondragover = e => { e.preventDefault(); knop.classList.add("over"); };
+    knop.ondragleave = () => knop.classList.remove("over");
+    knop.ondrop = e => { e.preventDefault(); knop.classList.remove("over"); uploadAlles([...e.dataTransfer.files]); };
+  }
+}
+function nieuweSlide() {
+  open(`<div class="mk"><h2>Add slide</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+    <div class="veld"><label for="nNaam">Name</label><input id="nNaam" placeholder="e.g. Winter opening hours"></div>
+    <div class="veld"><label for="nUrl">File name</label><input id="nUrl" placeholder="e.g. opening-hours.html">
+      <small>The HTML file of the slide, placed in the site folder on GitHub.</small></div>
+    <div class="macties"><button class="btn" data-sluit>Cancel</button><button class="btn prim" id="nOk">Add</button></div>`);
+  $("#nNaam").focus();
+  $("#nOk").onclick = () => {
+    const naam = $("#nNaam").value.trim(), url = $("#nUrl").value.trim();
+    if (!naam || !url) return melding("Enter a name and a file name");
+    cfg.slides.push({ id: nieuwId(naam, cfg.slides), naam, type: "slide", url }); sluit(); bewaar(); melding("Slide added");
+  };
+}
+function nieuweLink() {
+  open(`<div class="mk"><h2>Add web page</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+    <div class="veld"><label for="nNaam">Name</label><input id="nNaam" placeholder="e.g. Windy wind map"></div>
+    <div class="veld"><label for="nUrl">Web address</label><input id="nUrl" type="url" placeholder="https://…">
+      <small>Tip: many sites offer a special “embed” address for screens (Windy, YouTube, Google Calendar).</small></div>
+    <div class="macties"><button class="btn" data-sluit>Cancel</button><button class="btn prim" id="nOk">Add</button></div>`);
+  $("#nNaam").focus();
+  $("#nOk").onclick = () => {
+    const naam = $("#nNaam").value.trim(); let url = $("#nUrl").value.trim();
+    if (url && !/^https?:\/\//.test(url)) url = "https://" + url;
+    if (!naam || !url) return melding("Enter a name and a web address");
+    cfg.slides.push({ id: nieuwId(naam, cfg.slides), naam, type: "link", url }); sluit(); bewaar(); melding("Web page added");
+  };
+}
+
+/* ---------- media uploaden (naar de map media/ op GitHub) ---------- */
+$("#uploadF").onchange = e => { uploadAlles([...e.target.files]); e.target.value = ""; };
+async function uploadAlles(files) {
+  files = files.filter(f => /^(image|video)\//.test(f.type));
+  if (!files.length) return melding("Choose an image or video file");
+  const demo = !!window.LOOOP_DEMO;
+  if (!demo && (!gh.repo || !gh.token)) return info("Connect GitHub first", "Media files are stored with the site on GitHub. Connect GitHub in Settings, then upload again.");
+  for (const f of files) {
+    if (f.size > (demo ? 3 : MAX_MB) * 1048576) { melding(`${f.name} is too large (max ${demo ? 3 : MAX_MB} MB${demo ? " in this preview" : ""})`); continue; }
+    const video = f.type.startsWith("video/");
+    melding(`Uploading ${f.name}…`);
+    try {
+      const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+      const duur = video ? await videoDuur(dataUrl) : 0;
+      let url;
+      if (demo) url = dataUrl;
+      else {
+        const naam = f.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-"), pad = "media/" + Date.now().toString(36) + "-" + naam;
+        const r = await fetch(`https://api.github.com/repos/${gh.repo}/contents/${pad}`, { method: "PUT", headers: ghHead(), body: JSON.stringify({ message: "Add media " + f.name, content: dataUrl.split(",")[1], branch: gh.branch || "main" }) });
+        if (!r.ok) throw new Error("GitHub refused the upload (" + r.status + ").");
+        url = pad;
+      }
+      const naam = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+      cfg.slides.push({ id: nieuwId(naam, cfg.slides), naam, type: video ? "video" : "image", url, bestand: f.name, ...(duur ? { duur } : {}) });
+      libTab = "media"; bewaar(); melding(`${f.name} uploaded`);
+    } catch (x) { info("Upload failed", esc(x.message)); }
+  }
+}
+const videoDuur = src => new Promise(res => { const v = document.createElement("video"); v.preload = "metadata"; v.onloadedmetadata = () => res(Math.max(3, Math.round(v.duration || 30))); v.onerror = () => res(30); v.src = src; });
+
+/* ============================================================ dialogen & voorbeeld */
+let wachtSluit = null;
+function open(html, breed) { $("#mbox").className = "mbox" + (breed ? " breed" : ""); $("#mbox").innerHTML = html; $("#modal").classList.add("open"); $("#mbox").querySelectorAll("[data-sluit]").forEach(b => b.addEventListener("click", sluit)); }
+function sluit() { $("#modal").classList.remove("open"); $("#mbox").innerHTML = ""; const w = wachtSluit; wachtSluit = null; if (w) w(); }
+$("#modal").onclick = e => { if (e.target.id === "modal") sluit(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#modal").classList.contains("open")) sluit(); });
+function bevestig(titel, tekst, knop = "Delete") {
+  return new Promise(res => {
+    open(`<div class="mk"><h2>${esc(titel)}</h2></div><p style="margin:0" class="sub">${esc(tekst)}</p>
+      <div class="macties"><button class="btn" id="dNee">Cancel</button><button class="btn zwart" id="dJa">${esc(knop)}</button></div>`);
+    wachtSluit = () => res(false);
+    $("#dNee").onclick = () => sluit();
+    $("#dJa").onclick = () => { wachtSluit = null; sluit(); res(true); }; $("#dJa").focus();
+  });
+}
+function vraagNaam(titel, label, standaard) {
+  return new Promise(res => {
+    open(`<div class="mk"><h2>${esc(titel)}</h2></div><div class="veld"><label for="dNaam">${esc(label)}</label><input id="dNaam" value="${esc(standaard || "")}"></div>
+      <div class="macties"><button class="btn" id="dNee">Cancel</button><button class="btn prim" id="dJa">OK</button></div>`);
+    wachtSluit = () => res(null);
+    const i = $("#dNaam"); i.focus(); i.select();
+    const ok = () => { const v = i.value.trim(); wachtSluit = null; sluit(); res(v || null); };
+    $("#dJa").onclick = ok; i.onkeydown = e => { if (e.key === "Enter") ok(); };
+    $("#dNee").onclick = () => sluit();
+  });
+}
+function info(titel, html) {
+  open(`<div class="mk"><h2>${esc(titel)}</h2><button class="icoon" data-sluit aria-label="Close">×</button></div><div class="sub">${html}</div>
+    <div class="macties"><button class="btn" data-sluit>OK</button></div>`);
+}
+/* voorbeeld: "speler" toont een scherm of playlist zoals op de TV; anders één library-item */
+function voorbeeld(titel, wat, scId, plId) {
+  const isSpeler = wat === "speler";
+  open(`<div class="mk"><h2>${esc(titel)}</h2><button class="icoon" data-sluit aria-label="Close">×</button></div><div class="vb" id="vbKader"><iframe id="vbFrame" title="Preview"></iframe></div>
+    <div class="sub" style="font-size:13px">${isSpeler ? "As it plays on the TV, including unpublished changes." : soort(wat) === "link" ? "If this stays blank, the website doesn't allow being shown on a screen." : "Shown at screen size."}</div>`, true);
+  const f = $("#vbFrame"), k = $("#vbKader");
+  if (isSpeler) return speler(f, k, scId, plId);
+  const schaal = () => f.style.transform = `scale(${k.clientWidth / 1920})`; schaal(); new ResizeObserver(schaal).observe(k);
+  const html = S.mediaHtml(wat);
+  if (html) f.srcdoc = html; else f.src = wat.url;
+}
+
+/* ============================================================ publiceren */
+const b64 = t => btoa(String.fromCharCode(...new TextEncoder().encode(t)));
+const unb64 = b => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\n/g, "")), c => c.charCodeAt(0)));
+const ghUrl = () => `https://api.github.com/repos/${gh.repo}/contents/config.js`;
+function ghHead() { return { Authorization: "Bearer " + gh.token, Accept: "application/vnd.github+json" }; }
+async function ghLaad() {
+  if (!gh.repo || !gh.token || window.LOOOP_DEMO) return false;
+  const r = await fetch(ghUrl() + "?ref=" + (gh.branch || "main") + "&t=" + Date.now(), { headers: ghHead(), cache: "no-store" });
+  if (!r.ok) throw new Error(r.status === 401 ? "The token is invalid or expired." : r.status === 404 ? "Repository or config.js not found." : "GitHub did not respond (" + r.status + ").");
+  const j = await r.json(); ghSha = j.sha;
+  return S.migreer(S.leesConfigTekst(unb64(j.content)));
+}
+async function publiceer() {
+  if (window.LOOOP_DEMO) return info("Preview only", "This is a preview of the app. Your changes stay in this browser. Publishing to the screens works once the app runs on GitHub Pages.");
+  const knop = $("#publiceer");
+  cfg.bijgewerkt = new Date().toISOString(); cfg.versie = (gepubliceerd.versie || 0) + 1;
+  cfg.schermen.forEach(sc => sc.schema.forEach(r => delete r._per));
+  const tekst = S.schrijfConfigTekst(cfg);
+  if (!gh.repo || !gh.token) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([tekst], { type: "text/javascript" })); a.download = "config.js"; a.click();
+    open(`<div class="mk"><h2>config.js downloaded</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+      <p style="margin:0">GitHub isn't connected yet. Put the downloaded <b>config.js</b> in the site folder; the screens pick it up within a few minutes.</p>
+      <div class="uitleg">Faster: connect GitHub in <b>Settings</b> and publish with one click.</div>
+      <div class="macties"><button class="btn" data-sluit>Close</button><button class="btn prim" id="naarInst">Connect GitHub</button></div>`);
+    $("#naarInst").onclick = instellingen;
+    gepubliceerd = kloon(cfg); bewaar(false); teUploaden = true; status(); return;
+  }
+  knop.disabled = true; knop.textContent = "Publishing…";
+  try {
+    // eerst kijken of de andere beheerder intussen publiceerde
+    const vorige = ghSha, remote = await ghLaad();
+    if (vorige && ghSha !== vorige && JSON.stringify(remote) !== JSON.stringify(gepubliceerd)) {
+      gepubliceerd = remote; status();
+      throw new Error("Someone else published in the meantime. Your changes are kept here: check them, then publish again to overwrite.");
+    }
+    const r = await fetch(ghUrl(), { method: "PUT", headers: ghHead(), body: JSON.stringify({ message: "Update signage", content: b64(tekst), sha: ghSha, branch: gh.branch || "main" }) });
+    if (r.status === 409 || r.status === 422) { ghSha = null; throw new Error("Someone else published in the meantime. Publish again to overwrite."); }
+    if (!r.ok) throw new Error("GitHub refused the update (" + r.status + "). Check the token in Settings.");
+    ghSha = (await r.json()).content.sha;
+    gepubliceerd = kloon(cfg); bewaar(); melding("Published · live on screen within a few minutes");
+  } catch (e) { info("Not published", esc(e.message)); status(); }
+  knop.textContent = "Publish";
+}
+
+function instellingen() {
+  open(`<div class="mk"><h2>Settings</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+    <div class="veld"><label for="orgNaam">Organisation</label><input id="orgNaam" value="${esc(cfg.organisatie || "")}" placeholder="e.g. Vlaamse Vaarschool"><small>Shown next to the LOOOP logo.</small></div>
+    <div><span class="kicker">Publish via GitHub</span></div>
+    <div class="veld"><label for="ghRepo">Repository</label><input id="ghRepo" placeholder="username/looop" value="${esc(gh.repo || "")}"></div>
+    <div class="veld"><label for="ghBranch">Branch</label><input id="ghBranch" value="${esc(gh.branch || "main")}"></div>
+    <div class="veld"><label for="ghToken">Access token</label><input id="ghToken" type="password" placeholder="github_pat_…" value="${esc(gh.token || "")}">
+      <small>Stored in this browser only. Enter it again on another computer.</small></div>
+    <div class="uitleg"><b>Create a token</b> (once, 2 minutes)<ol>
+      <li>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.</li>
+      <li>Repository access: only this repository.</li>
+      <li>Permissions → Contents: <b>Read and write</b>. Any expiry date.</li></ol>
+      <div style="margin-top:8px"><b>Second admin?</b> Invite them as a collaborator on the repository; they create their own token. If the other admin publishes while you edit, you get a warning before anything is overwritten.</div></div>
+    <div><span class="kicker">Backup</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn klein" id="exp">Download configuration</button><button class="btn klein" id="imp">Load configuration…</button><input type="file" id="impF" accept=".js,.json" hidden></div>
+    <div class="macties"><button class="btn" data-sluit>Close</button><button class="btn prim" id="ghOk">Save and test</button></div>`);
+  $("#orgNaam").onchange = e => { cfg.organisatie = e.target.value.trim(); $("#org").textContent = cfg.organisatie; bewaar(false); };
+  $("#exp").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([S.schrijfConfigTekst(cfg)], { type: "text/javascript" })); a.download = "config.js"; a.click(); };
+  $("#imp").onclick = () => $("#impF").click();
+  $("#impF").onchange = async e => { try { cfg = S.migreer(S.leesConfigTekst(await e.target.files[0].text())); sluit(); bewaar(); melding("Configuration loaded as unpublished changes"); } catch (x) { melding("This file can't be read"); } };
+  $("#ghOk").onclick = async () => {
+    gh = { repo: $("#ghRepo").value.trim().replace(/^https:\/\/github.com\//, "").replace(/\/$/, ""), branch: $("#ghBranch").value.trim() || "main", token: $("#ghToken").value.trim() };
+    schrijf(GHKEY, gh); ghSha = null;
+    if (!gh.repo || !gh.token) { sluit(); return melding("GitHub disconnected"); }
+    if (window.LOOOP_DEMO) { sluit(); return melding("Saved · connecting works once the app runs on GitHub Pages"); }
+    try { const c = await ghLaad(); if (!gewijzigd()) { gepubliceerd = c; cfg = kloon(c); } else gepubliceerd = c; sluit(); bewaar(); melding("Connected to GitHub"); }
+    catch (x) { melding(x.message); }
+  };
+}
+
+/* ============================================================ start */
+$("#publiceer").onclick = publiceer;
+$("#org").textContent = cfg.organisatie || "";
+$("#org").hidden = !cfg.organisatie;
+/* het logo: de koraal-o loopt rond, zoals een playlist */
+(() => { const os = [...document.querySelectorAll(".wm .o")]; let k = 1; os[k].classList.add("on");
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  setInterval(() => { os[k].classList.remove("on"); k = (k + 1) % 3; os[k].classList.add("on"); }, 2400); })();
+$("#instel").onclick = instellingen;
+(async () => {
+  if (window.LOOOP_DEMO) document.body.insertAdjacentHTML("afterbegin", `<div class="demo">Preview · changes stay in this browser · weather and webcams don't load here</div>`);
+  try { const c = await ghLaad(); if (c) { const had = gewijzigd(); gepubliceerd = c; if (!had) cfg = kloon(c); } } catch (e) { melding("GitHub: " + e.message); }
+  status(); ga(view);
+})();
+</script>
+</body>
+</html>

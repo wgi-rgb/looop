@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LOOOP Player</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#1f2a2e;overflow:hidden;cursor:none}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff;opacity:0;transition:opacity .8s ease}
+  iframe.zicht{opacity:1}
+  #leeg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:2vh;
+    font-family:system-ui,sans-serif;color:#fff}
+  #leeg .wm{font:600 12vh Outfit,sans-serif;letter-spacing:-.03em;color:#f7f9f8}
+  #leeg .wm .on{color:#4fbdb3}
+  #leeg>span:last-child{font-size:1.6vh;letter-spacing:.2em;text-transform:uppercase;color:#a3a8ab}
+  #leeg.aan{display:flex}
+  #tag{position:fixed;left:1.5vw;top:1.5vh;padding:.6vh .9vw;border-radius:999px;background:#1f2a2e;color:#fff;
+    font:700 1.4vh system-ui,sans-serif;display:none;z-index:9}
+</style>
+<script src="config.js"></script>
+<script src="signage-core.js"></script>
+</head>
+<body>
+<iframe id="fA" title="slide"></iframe>
+<iframe id="fB" title="slide"></iframe>
+<div id="leeg"><span class="wm" aria-label="looop">l<span class="o">o</span><span class="o on">o</span><span class="o">o</span>p</span><span>Nothing scheduled</span></div>
+<div id="tag"></div>
+<script>
+/* LOOOP speler
+   - speelt de playlist die volgens het schema nu geldt (bovenste regel wint, anders de standaard)
+   - laadt de volgende slide vooraf in een verborgen frame en wisselt met een zachte overgang
+   - kijkt elke minuut of config.js gewijzigd is; wijzigingen gelden vanaf de volgende slide
+   - onthoudt de laatste werkende configuratie, zodat het scherm blijft spelen zonder internet
+   - herlaadt zichzelf elke nacht om 04:00 (houdt de TV-browser fris)
+   Scherm kiezen: ?scherm=scherm-2 (zonder: het eerste scherm)
+   Testen: ?playlist=avond  ·  ?nu=2026-10-19T20:00  ·  ?label=1 (toont welke playlist speelt) */
+const Q = new URLSearchParams(location.search);
+const S = window.Signage;
+const PREVIEW = Q.has("preview");
+const SCHERM = Q.get("scherm");
+const BEWAAR = "looop-speler-config";
+
+let cfg = window.SIGNAGE_CONFIG || null;
+try { if (!cfg) cfg = JSON.parse(localStorage.getItem(BEWAAR)); } catch (e) {}
+cfg = S.migreer(cfg);
+const tijdVerschil = Q.get("nu") ? new Date(Q.get("nu")) - Date.now() : 0;
+const nu = () => new Date(Date.now() + tijdVerschil);
+
+const frames = [document.getElementById("fA"), document.getElementById("fB")];
+let voor = 0, lijst = [], plId = null, idx = -1, timer = null, sleutel = "";
+
+function huidigePlaylist() {
+  if (Q.get("playlist")) return S.playlistById(cfg, Q.get("playlist"));
+  return S.actievePlaylist(cfg, nu(), SCHERM).playlist;
+}
+
+let teller = 0;
+/* Laad een slide in een (verborgen) frame. Altijd vers laden, zodat weer en webcam actueel zijn. */
+function laad(frame, slide) {
+  frame.dataset.slide = slide.id;
+  frame.klaar = new Promise(res => {
+    let klaar = false;
+    const af = () => { if (!klaar) { klaar = true; res(); } };
+    frame.onload = () => setTimeout(af, 1500);    // even tijd om weer- en webcamdata op te halen
+    setTimeout(af, 8000);                         // trage of kapotte slide: niet blijven wachten
+    const html = S.mediaHtml(slide);
+    if (html) { frame.removeAttribute("src"); frame.srcdoc = html; }               // afbeelding of video
+    else {
+      frame.removeAttribute("srcdoc");
+      frame.src = slide.type === "link" ? slide.url                                // externe webpagina
+        : slide.url + (slide.url.includes("?") ? "&" : "?") + "speler=" + (++teller);  // eigen slide, altijd vers
+    }
+  });
+  return frame.klaar;
+}
+
+async function volgende() {
+  clearTimeout(timer);
+  if (!cfg) return toonLeeg(true);
+  const pl = huidigePlaylist();
+  const nieuw = S.speellijst(cfg, pl);
+  const k = (pl && pl.id) + JSON.stringify(nieuw.map(s => s.id + s.url + s.duur));
+  if (k !== sleutel) { sleutel = k; lijst = nieuw; idx = -1; plId = pl && pl.id; }
+  toonTag(pl);
+  if (!lijst.length) {
+    frames.forEach(f => { f.classList.remove("zicht"); f.removeAttribute("src"); f.dataset.slide = ""; });
+    timer = setTimeout(volgende, 30 * 1000);
+    meld(pl, -1, null);
+    return toonLeeg(true);
+  }
+  toonLeeg(false);
+  idx = (idx + 1) % lijst.length;
+  const slide = lijst[idx];
+  if (lijst.length === 1 && frames[voor].dataset.slide === slide.id && frames[voor].classList.contains("zicht")) {
+    meld(pl, idx, slide); timer = setTimeout(volgende, slide.duur * 1000); return;   // één slide: gewoon laten staan
+  }
+  const achter = 1 - voor;
+  // meestal is deze slide al vooraf geladen tijdens de vorige; zo niet, nu laden
+  if (frames[achter].dataset.slide !== slide.id || !frames[achter].klaar) laad(frames[achter], slide);
+  await frames[achter].klaar;
+  frames[achter].classList.add("zicht");
+  frames[voor].classList.remove("zicht");
+  voor = achter;
+  meld(pl, idx, slide);
+  timer = setTimeout(volgende, slide.duur * 1000);
+  // volgende slide alvast laden in het verborgen frame (na de overgang)
+  const nxt = lijst[(idx + 1) % lijst.length];
+  if (lijst.length > 1) setTimeout(() => { if (lijst[(idx + 1) % lijst.length] === nxt) laad(frames[1 - voor], nxt); }, 1200);
+}
+
+/* in het beheer: laten weten welke slide nu speelt */
+function meld(pl, i, slide) {
+  if (PREVIEW) parent.postMessage({ type: "looop-speelt", playlist: pl && pl.id, index: i, slide: slide && slide.id, duur: slide && slide.duur }, "*");
+}
+function toonLeeg(aan) { document.getElementById("leeg").classList.toggle("aan", aan); }
+function toonTag(pl) {
+  const t = document.getElementById("tag");
+  if (!Q.has("label")) return;
+  t.style.display = "block"; t.textContent = S.schermById(cfg, SCHERM).naam + " · " + (pl ? pl.naam : "geen playlist");
+}
+
+/* Nieuwe configuratie ophalen (werkt online; lokaal via file:// slaat dit stil over) */
+async function check() {
+  /* lokaal testen (bestand geopend vanaf de computer): toon de wijzigingen uit admin.html op dezelfde computer */
+  if (location.protocol === "file:") {
+    try { const c = JSON.parse(localStorage.getItem("looop-concept")); if (c) cfg = S.migreer(c); } catch (e) {}
+    return;
+  }
+  try {
+    const r = await fetch("config.js?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return;
+    const c = S.migreer(S.leesConfigTekst(await r.text()));
+    if (JSON.stringify(c) !== JSON.stringify(cfg)) cfg = c;
+    localStorage.setItem(BEWAAR, JSON.stringify(cfg));
+  } catch (e) { /* offline: verder met wat we hebben */ }
+}
+
+/* Voorbeeld vanuit het beheer: configuratie komt via postMessage */
+window.addEventListener("message", e => {
+  if (e.data && e.data.type === "looop-config") { cfg = S.migreer(e.data.cfg); sleutel = ""; volgende(); }
+});
+
+/* Nachtelijke herstart om 04:00 */
+(function plan() {
+  const n = new Date(), t = new Date(n); t.setHours(4, 0, 0, 0); if (t <= n) t.setDate(t.getDate() + 1);
+  setTimeout(() => location.reload(), t - n);
+})();
+
+if (!PREVIEW) {
+  try { if (cfg) localStorage.setItem(BEWAAR, JSON.stringify(cfg)); } catch (e) {}
+  setInterval(check, 60 * 1000);
+  check().finally(volgende);
+} else {
+  parent.postMessage({ type: "looop-speler-klaar" }, "*");
+}
+</script>
+</body>
+</html>
