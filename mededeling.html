@@ -178,6 +178,16 @@ main{display:grid;grid-template-columns:1fr 2fr;min-height:0}
 .card .ch{font-size:9vh;font-weight:700;line-height:.95;letter-spacing:-.03em}
 .card .what{font-size:2.2vh;font-weight:700;margin-top:var(--s1)}
 .card .why{font-size:1.9vh;font-weight:500;line-height:1.35;color:#4a4643}
+
+/* ===== gedeeld kader: identiek op alle slides =====
+   kop 3vh boven en onder · inhoud start en eindigt op dezelfde hoogte links en rechts
+   · onderaan overal 4vh witruimte boven de gele balk · bron gecentreerd in die witruimte */
+header{padding:3vh 3.5vw !important}
+.logo{height:4.6vh !important}
+.side{display:flex !important;flex-direction:column;padding-top:var(--s4) !important;padding-bottom:var(--s4) !important}
+.side>.next{margin-top:auto !important}
+.prog{position:relative;padding-top:var(--s4) !important;padding-bottom:var(--s4) !important}
+.prog>.src{position:absolute;right:3.5vw;bottom:calc(var(--s4) / 2);transform:translateY(50%);margin:0 !important}
 </style>
 </head>
 <body>
