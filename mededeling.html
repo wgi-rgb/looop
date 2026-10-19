@@ -362,9 +362,9 @@ function startTicker(){
   const one=BERICHTEN.map(b=>`<i>${MORSE}</i><span>${b.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</span>`).join("");
   tr.innerHTML=one;const w=tr.scrollWidth||1,box=tr.parentElement.clientWidth;
   const reps=Math.max(2,Math.ceil(box/w)+1);tr.innerHTML=one.repeat(reps);
-  let x=box,last=performance.now();
-  const step=now=>{x-=(now-last)/1000*TICKER_SNELHEID;last=now;if(x<=-w)x+=w;tr.style.transform=`translateX(${x}px)`;requestAnimationFrame(step);};
-  requestAnimationFrame(step);
+  /* CSS-animatie i.p.v. JavaScript: loopt op de grafische kaart, ook vloeiend op een trage tv */
+  const k=document.createElement("style");k.textContent=`@keyframes tickerLoop{from{transform:translate3d(0,0,0)}to{transform:translate3d(${-w}px,0,0)}}`;document.head.append(k);
+  tr.style.animation=`tickerLoop ${w/TICKER_SNELHEID}s linear infinite`;
 }
 document.fonts&&document.fonts.ready?document.fonts.ready.then(startTicker):startTicker();
 /* ---------- mededeling ---------- */
