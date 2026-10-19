@@ -24,20 +24,23 @@ button{cursor:pointer}
 /* ---------- kop ---------- */
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(247,249,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header.top .wrap{display:flex;align-items:center;gap:56px;height:84px}
+header.top .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:32px;height:84px}
+header.top .pub{justify-self:end}
 .logo{display:flex;align-items:center;gap:12px;font-weight:700;white-space:nowrap}
 .wm{font-family:Outfit,sans-serif;font-size:48px;font-weight:600;letter-spacing:-.03em;line-height:1;color:var(--fg);display:inline-flex;align-items:baseline;transform:translateY(-4px)}
 .wm .o{transition:color .7s ease}
 .wm .o.on{color:var(--coral)}
 
 .logo #org{font-size:13px;color:var(--muted);font-weight:600;padding-left:12px;border-left:1px solid var(--line)}
-nav.tabs{display:flex;gap:2px;flex:1;overflow-x:auto}
+nav.tabs{display:flex;gap:4px;overflow-x:auto}
 nav.tabs a{padding:7px 13px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:500;font-size:15px;white-space:nowrap}
 nav.tabs a:hover{color:var(--fg)}
 nav.tabs a.on{background:var(--pinetint);color:#17615b}
 .pub{display:flex;align-items:center;gap:12px;white-space:nowrap}
 .state{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:600}
 .state i{width:8px;height:8px;border-radius:50%;background:var(--pine)}
+.state.live{color:var(--pine);gap:6px}
+.state.live svg{width:18px;height:18px}
 .state.dirty i{background:#e0a03a}
 .state button{border:0;background:none;padding:0;color:var(--muted);text-decoration:underline;font-size:13px}
 .btn{border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-weight:600;background:#fff;transition:background .15s,border-color .15s}
@@ -115,7 +118,10 @@ h2{font-size:20px;margin:0;font-weight:700}
 /* tijdlijn */
 .tl{position:relative;height:40px;border-radius:8px;overflow:hidden;background:var(--panel)}
 .tl .seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;color:#4a4643;white-space:nowrap;overflow:hidden;border-right:2px solid #fff}
-.tl .nuL{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red);z-index:2}
+.tl .nuL{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--red);z-index:2}
+.vandaagblok .tl{overflow:visible}
+.vandaagblok .tl .seg:first-child{border-top-left-radius:8px;border-bottom-left-radius:8px}
+.vandaagblok .nuL::after{content:attr(data-t);position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:11px;font-weight:600;line-height:1;padding:3px 7px;border-radius:999px;font-variant-numeric:tabular-nums;z-index:3}
 .uren{position:relative;height:18px;margin-top:6px;font-size:11px;color:var(--soft);font-weight:600;font-variant-numeric:tabular-nums}
 .uren span{position:absolute;transform:translateX(-50%)}
 .uren span:first-child{transform:none}.uren span:last-child{transform:translateX(-100%)}
@@ -246,7 +252,7 @@ h2{font-size:20px;margin:0;font-weight:700}
 
 @media (max-width:980px){
   .wrap{padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
-  header.top .wrap{flex-wrap:wrap;height:auto;padding-top:12px;padding-bottom:10px;gap:10px 14px}
+  header.top .wrap{display:flex;flex-wrap:wrap;height:auto;padding-top:12px;padding-bottom:10px;gap:10px 14px}
   .logo{flex:1;min-width:0}
   .wm{font-size:36px}
   .logo #org{display:none}
@@ -379,9 +385,10 @@ function bewaar(opnieuw = true) {
 }
 function status() {
   const d = gewijzigd();
-  $("#state").className = "state" + (d ? " dirty" : "");
-  $("#state").innerHTML = d ? `<i></i><span class="lbl">Unpublished changes ·</span> <button id="herstel">Discard</button>`
-    : teUploaden ? `<i style="background:#e9a23b"></i><span class="lbl">Downloaded · upload pending</span>` : `<i></i><span class="lbl">Everything is live</span>`;
+  $("#state").className = "state" + (d ? " dirty" : teUploaden ? "" : " live");
+  $("#state").title = d ? "" : teUploaden ? "" : "Everything is live: the screens show the latest version";
+  $("#state").innerHTML = d ? `<i></i><span class="lbl">Unpublished ·</span> <button id="herstel">Discard</button>`
+    : teUploaden ? `<i style="background:#e9a23b"></i><span class="lbl">Downloaded · upload pending</span>` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 10"/></svg><span>Live</span>`;
   $("#publiceer").disabled = !d;
   if (d) $("#herstel").onclick = async () => { if (await bevestig("Discard changes?", "Everything you changed since the last publish will be lost.", "Discard")) { cfg = kloon(gepubliceerd); bewaar(); melding("Changes discarded"); } };
 }
@@ -460,10 +467,11 @@ window.addEventListener("message", e => {
 function segmenten(dag, sc) {
   const d0 = new Date(dag); d0.setHours(0, 0, 0, 0);
   const seg = [];
-  for (let m = 0; m < 1440; m += 15) {
-    const a = S.actievePlaylist(cfg, new Date(d0.getTime() + m * 6e4), sc.id), p = a.playlist, id = p ? p.id : null, rid = a.regel ? a.regel.id : "";
+  for (let m = 0; m < 1440; m++) {
+    const t = new Date(d0); t.setMinutes(m);
+    const a = S.actievePlaylist(cfg, t, sc.id), p = a.playlist, id = p ? p.id : null, rid = a.regel ? a.regel.id : "";
     const l = seg[seg.length - 1];
-    if (l && l.id === id && l.rid === rid) l.tot = m + 15; else seg.push({ id, rid, naam: p ? p.naam : "", van: m, tot: m + 15 });
+    if (l && l.id === id && l.rid === rid) l.tot = m + 1; else seg.push({ id, rid, naam: p ? p.naam : "", van: m, tot: m + 1 });
   }
   return seg;
 }
@@ -471,8 +479,15 @@ const uur = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60
 function tijdlijn(dag, sc) {
   const nu = new Date(), toon = dag.toDateString() === nu.toDateString();
   return `<div class="tl">${segmenten(dag, sc).map(s => { const c = s.id ? tint(s.id) : "transparent"; return `<div class="seg ${s.rid ? "gepland" : ""}" data-regel="${s.rid}" title="${esc(s.naam)} · ${uur(s.van)} – ${uur(s.tot)}" style="left:${s.van / 14.4}%;width:${(s.tot - s.van) / 14.4}%;background:${c}">${(s.tot - s.van) >= 150 ? esc(s.naam) : ""}</div>`; }).join("")}
-    ${toon ? `<div class="nuL" style="left:${(nu.getHours() * 60 + nu.getMinutes()) / 14.4}%"></div>` : ""}</div>`;
+    ${toon ? `<div class="nuL" style="left:${(nu.getHours() * 60 + nu.getMinutes()) / 14.4}%" data-t="${S.hm(nu)}"></div>` : ""}</div>`;
 }
+/* de nu-lijn schuift elke 20 s mee; om middernacht wordt de dag opnieuw getekend */
+let tekenDag = new Date().toDateString();
+setInterval(() => {
+  const nu = new Date();
+  if (nu.toDateString() !== tekenDag) { tekenDag = nu.toDateString(); if (!document.querySelector(".modal.open")) render(); return; }
+  document.querySelectorAll(".nuL").forEach(l => { l.style.left = (nu.getHours() * 60 + nu.getMinutes()) / 14.4 + "%"; l.dataset.t = S.hm(nu); });
+}, 20000);
 const urenAs = () => `<div class="uren">${[0, 3, 6, 9, 12, 15, 18, 21, 24].map(h => `<span style="left:${h / 24 * 100}%">${String(h).padStart(2, "0")}:00</span>`).join("")}</div>`;
 
 /* de speler als voorbeeld in een kader, geschaald naar de breedte; krijgt het concept via postMessage */
