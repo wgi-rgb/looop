@@ -193,49 +193,5 @@ window.SIGNAGE_CONFIG = {
         }
       ]
     }
-  ],
-  "componenten": [
-    {
-      "id": "klok-en-weer",
-      "naam": "Klok en weer",
-      "slide": "programma",
-      "deel": "links"
-    },
-    {
-      "id": "programma-vandaag",
-      "naam": "Programma vandaag",
-      "slide": "programma",
-      "deel": "rechts"
-    },
-    {
-      "id": "webcam-nieuwpoort",
-      "naam": "Webcam Nieuwpoort",
-      "slide": "webcam",
-      "deel": "rechts"
-    },
-    {
-      "id": "webcam-oostende",
-      "naam": "Webcam Oostende",
-      "slide": "webcam-oostende",
-      "deel": "rechts"
-    },
-    {
-      "id": "mededeling-marifoon",
-      "naam": "Mededeling marifoon",
-      "slide": "marifoon",
-      "deel": "rechts"
-    },
-    {
-      "id": "schietsectoren",
-      "naam": "Schietsectoren",
-      "slide": "schietsector",
-      "deel": "rechts"
-    },
-    {
-      "id": "signalisatie",
-      "naam": "Signalisatie",
-      "slide": "signalisatie",
-      "deel": "rechts"
-    }
   ]
 };
