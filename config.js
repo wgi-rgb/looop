@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 6,
-  "bijgewerkt": "2026-10-18T20:08:24.841Z",
+  "versie": 7,
+  "bijgewerkt": "2026-10-19T14:19:19.208Z",
   "slides": [
     {
       "id": "programma",
@@ -65,22 +65,16 @@ window.SIGNAGE_CONFIG = {
       "naam": "Daytime",
       "items": [
         {
-          "slide": "weer",
-          "duur": 20,
-          "aan": false
+          "slide": "programma",
+          "duur": 20
         },
         {
-          "slide": "programma",
+          "slide": "weer",
           "duur": 20
         },
         {
           "slide": "marifoon",
           "duur": 15
-        },
-        {
-          "slide": "webcam",
-          "duur": 15,
-          "aan": false
         },
         {
           "slide": "schietsector",
@@ -91,13 +85,12 @@ window.SIGNAGE_CONFIG = {
           "duur": 15
         },
         {
-          "slide": "webcam-oostende",
-          "duur": 15,
-          "aan": false
+          "slide": "webcam",
+          "duur": 15
         },
         {
-          "slide": "cadeaubon",
-          "duur": 10
+          "slide": "webcam-oostende",
+          "duur": 15
         }
       ]
     },
