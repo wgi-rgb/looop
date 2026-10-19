@@ -42,6 +42,8 @@ nav.tabs a.on{background:var(--pinetint);color:#17615b}
 .state.live{color:var(--pine);gap:6px}
 .state.live svg{width:18px;height:18px}
 .state.dirty i{background:#e0a03a}
+.state.bezig i{background:var(--pine);animation:puls 1.2s ease-in-out infinite}
+@keyframes puls{50%{opacity:.25}}
 .state button{border:0;background:none;padding:0;color:var(--muted);text-decoration:underline;font-size:13px}
 .btn{border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-weight:600;background:#fff;transition:background .15s,border-color .15s}
 .btn:hover{border-color:var(--soft)}
@@ -386,6 +388,10 @@ function bewaar(opnieuw = true) {
 }
 function status() {
   const d = gewijzigd();
+  if (!d && bijwerken) {
+    $("#state").className = "state bezig"; $("#state").title = "GitHub is putting the new version online. The screens follow within a minute or two.";
+    $("#state").innerHTML = `<i></i><span class="lbl">Updating screens…</span>`; $("#publiceer").disabled = true; return;
+  }
   $("#state").className = "state" + (d ? " dirty" : teUploaden ? "" : " live");
   $("#state").title = d ? "" : teUploaden ? "" : "Everything is live: the screens show the latest version";
   $("#state").innerHTML = d ? `<i></i><span class="lbl">Unpublished ·</span> <button id="herstel">Discard</button>`
@@ -911,6 +917,22 @@ async function ghLaad() {
   const j = await r.json(); ghSha = j.sha;
   return S.migreer(S.leesConfigTekst(unb64(j.content)));
 }
+/* Na publiceren: GitHub Pages heeft even nodig om de nieuwe config.js online te zetten.
+   We kijken tot de site de nieuwe versie geeft; de schermen nemen ze binnen 15 s daarna over. */
+let bijwerken = 0;
+async function wachtOpSchermen(versie) {
+  const tot = Date.now() + 6 * 60 * 1000;
+  while (bijwerken === versie && Date.now() < tot) {
+    await new Promise(r => setTimeout(r, 8000));
+    try {
+      const c = S.leesConfigTekst(await (await fetch("config.js?t=" + Date.now(), { cache: "no-store" })).text());
+      if (c && c.versie >= versie) break;
+    } catch (e) {}
+  }
+  if (bijwerken !== versie) return;
+  bijwerken = 0; status();
+  if (Date.now() < tot) setTimeout(() => melding("Live on all screens"), 15000);
+}
 async function publiceer() {
   if (window.LOOOP_DEMO) return info("Preview only", "This is a preview of the app. Your changes stay in this browser. Publishing to the screens works once the app runs on GitHub Pages.");
   const knop = $("#publiceer");
@@ -935,7 +957,8 @@ async function publiceer() {
     if (r.status === 409 || r.status === 422) { ghSha = null; throw new Error("Someone else published in the meantime. Publish again to overwrite."); }
     if (!r.ok) throw new Error("GitHub refused the update (" + r.status + "). Check the token in Settings.");
     ghSha = (await r.json()).content.sha;
-    gepubliceerd = kloon(cfg); bewaar(); melding("Published · live on screen within a few minutes");
+    gepubliceerd = kloon(cfg); bijwerken = cfg.versie; bewaar(); melding("Published · the screens update in about a minute");
+    wachtOpSchermen(cfg.versie);
   } catch (e) { info("Not published", esc(e.message)); status(); }
   knop.textContent = "Publish";
 }

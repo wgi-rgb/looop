@@ -30,7 +30,7 @@
 /* LOOOP speler
    - speelt de playlist die volgens het schema nu geldt (bovenste regel wint, anders de standaard)
    - laadt de volgende slide vooraf in een verborgen frame en wisselt met een zachte overgang
-   - kijkt elke minuut of config.js gewijzigd is; wijzigingen gelden vanaf de volgende slide
+   - kijkt elke 15 seconden of config.js gewijzigd is; een wijziging gaat meteen in
    - onthoudt de laatste werkende configuratie, zodat het scherm blijft spelen zonder internet
    - herlaadt zichzelf elke nacht om 04:00 (houdt de TV-browser fris)
    Scherm kiezen: ?scherm=scherm-2 (zonder: het eerste scherm)
@@ -48,6 +48,7 @@ const tijdVerschil = Q.get("nu") ? new Date(Q.get("nu")) - Date.now() : 0;
 const nu = () => new Date(Date.now() + tijdVerschil);
 
 const frames = [document.getElementById("fA"), document.getElementById("fB")];
+let gestart = false;
 let voor = 0, lijst = [], plId = null, idx = -1, timer = null, sleutel = "";
 
 function huidigePlaylist() {
@@ -141,8 +142,10 @@ async function check() {
     const r = await fetch("config.js?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) return;
     const c = S.migreer(S.leesConfigTekst(await r.text()));
-    if (JSON.stringify(c) !== JSON.stringify(cfg)) cfg = c;
-    localStorage.setItem(BEWAAR, JSON.stringify(cfg));
+    if (JSON.stringify(c) !== JSON.stringify(cfg)) {
+      cfg = c; localStorage.setItem(BEWAAR, JSON.stringify(cfg));
+      if (gestart) { sleutel = ""; volgende(); }     // meteen naar de nieuwe playlist, op de klok van de andere schermen
+    }
   } catch (e) { /* offline: verder met wat we hebben */ }
 }
 
@@ -159,8 +162,8 @@ window.addEventListener("message", e => {
 
 if (!PREVIEW) {
   try { if (cfg) localStorage.setItem(BEWAAR, JSON.stringify(cfg)); } catch (e) {}
-  setInterval(check, 60 * 1000);
-  check().finally(volgende);
+  setInterval(check, 15 * 1000);
+  check().finally(() => { gestart = true; volgende(); });
 } else {
   parent.postMessage({ type: "looop-speler-klaar" }, "*");
 }
