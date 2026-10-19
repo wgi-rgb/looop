@@ -238,6 +238,28 @@ h2{font-size:20px;margin:0;font-weight:700}
 .kiesgrid b{display:block;padding:10px 12px;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kiesgrid .in{position:absolute;top:8px;right:8px;background:var(--pine);color:#fff;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px}
 .vb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:10px;overflow:hidden;background:var(--fg)}
+/* samengestelde slides en componenten */
+.duim.groot{width:100%;border-radius:10px;cursor:default}
+.duim .vlak{position:absolute;left:33.333%;top:10.65%;right:0;bottom:6.2%;overflow:hidden}
+.duim .vlak.links{left:0;right:66.667%}
+.duim .vlak span{position:absolute;width:150%;height:120.27%;left:-50%;top:-12.81%;background:center/cover no-repeat}
+.duim .vlak.links span{width:300%;left:0}
+.duim .vlak.mark{box-shadow:0 0 0 999px rgba(247,249,248,.72);outline:2px solid var(--pine);outline-offset:-2px;overflow:visible}
+.samen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:28px;align-items:start}
+.samen .vb{position:sticky;top:0}
+.kz{display:grid;gap:10px}
+.kz>b{font-size:13px}
+.kz .kiesgrid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.kz .kiesgrid b{padding:8px 10px;font-size:12.5px}
+.kiesgrid button.on{box-shadow:0 0 0 2px var(--pine)}
+.kiesgrid button.on::after{content:"✓";position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--pine);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.seg2{display:inline-flex;gap:4px;padding:4px;background:var(--panel);border-radius:999px;justify-self:start}
+.seg2 button{border:0;background:none;padding:8px 16px;border-radius:999px;font-weight:600;color:var(--muted)}
+.seg2 button.on{background:#fff;color:var(--fg);box-shadow:0 1px 3px rgba(7,5,4,.12)}
+.veld select{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;font:inherit;min-width:0}
+.sk.add.klein{min-height:0;flex-direction:row;padding:14px}
+.sk.add.klein span{font-size:22px}
+@media (max-width:980px){.samen{grid-template-columns:minmax(0,1fr)}.samen .vb{position:static;order:-1}}
 .uitleg{background:var(--panel);border-radius:10px;padding:14px 16px;font-size:13.5px;color:#4a4643}
 .uitleg ol{margin:6px 0 0;padding-left:18px}
 .uitleg summary{cursor:pointer}
@@ -318,6 +340,8 @@ const schrijf = (k, v) => { try { v == null ? localStorage.removeItem(k) : local
 
 let gepubliceerd = S.migreer(kloon(window.SIGNAGE_CONFIG || {}));
 let cfg = S.migreer(lees(CONCEPT, null) || kloon(gepubliceerd));
+if (!cfg.componenten) cfg.componenten = kloon(gepubliceerd.componenten || []);
+if (!gepubliceerd.componenten) gepubliceerd.componenten = [];
 let schermId = lees("looop-scherm", null);
 const sch = () => S.schermById(cfg, schermId);
 let gh = lees(GHKEY, {}), ghSha = null, teUploaden = false;
@@ -347,12 +371,33 @@ const ICON = {
 /* voorbeeldbeeldje van een library-item */
 function duim(s) {
   const t = soort(s);
+  if (s.samengesteld) return samenDuim(s.samengesteld);
   if (t === "image") return `<span class="duim" style="background-image:url('${esc(s.url)}')"></span>`;
   if (t === "video") return `<span class="duim donker">${ICON.play}</span>`;
   if (t === "link") return `<span class="duim web">${ICON.web}</span>`;
   return `<span class="duim" style="background-image:url('thumbs/${esc(s.id)}.png')"></span>`;
 }
-const omschrijving = s => soort(s) === "link" ? domein(s.url) : soort(s) === "slide" ? s.url : (s.bestand || s.url.split("/").pop());
+/* ---------- componenten: benoemde panelen uit bestaande slides ---------- */
+const DEEL = { links: "Left panel", rechts: "Main panel" };
+const compById = id => (cfg.componenten || []).find(c => c.id === id);
+const bronVan = c => c && S.slideById(cfg, c.slide);
+const htmlSlides = () => cfg.slides.filter(x => soort(x) === "slide" && !x.samengesteld);
+function samenUrl(l, r) {
+  const a = bronVan(compById(l)), b = bronVan(compById(r));
+  if (!a || !b) return null;
+  return "samenstel.html?" + new URLSearchParams({ l: a.url, r: b.url });
+}
+function herbouw() { cfg.slides.forEach(x => { if (x.samengesteld) { const u = samenUrl(x.samengesteld.links, x.samengesteld.rechts); if (u) x.url = u; } }); }
+const vlak = (deel, src) => `<span class="vlak ${deel}"><span style="background-image:url('${esc(src)}')"></span></span>`;
+function compDuim(c) {
+  const b = bronVan(c);
+  return `<span class="duim" style="background-image:url('thumbs/${esc(b ? b.id : "")}.png')"><span class="vlak ${c.deel} mark"></span></span>`;
+}
+function samenDuim(sg) {
+  const a = bronVan(compById(sg.links)), b = bronVan(compById(sg.rechts));
+  return `<span class="duim" style="background-image:url('thumbs/${esc(a ? a.id : "")}.png')">${b ? vlak("rechts", "thumbs/" + b.id + ".png") : ""}</span>`;
+}
+const omschrijving = s => s.samengesteld ? [compById(s.samengesteld.links), compById(s.samengesteld.rechts)].map(c => c ? c.naam : "?").join(" + ") : soort(s) === "link" ? domein(s.url) : soort(s) === "slide" ? s.url : (s.bestand || s.url.split("/").pop());
 
 function dagenTekst(d) {
   const ds = [...new Set(d && d.length ? d : [1, 2, 3, 4, 5, 6, 7])].sort(), k = ds.join("");
@@ -764,31 +809,33 @@ function sorteer(lijst, sel, klaar) {
 /* ============================================================ LIBRARY */
 function viewLibrary() {
   const gebruik = id => cfg.playlists.filter(p => p.items.some(i => i.slide === id)).map(p => p.naam);
-  const tel = t => cfg.slides.filter(s => t.includes(soort(s))).length;
   const TABS = { slides: { soorten: ["slide"], uitleg: "Your own designed screens (HTML), such as the programme, weather and firing ranges." },
     media: { soorten: ["image", "video"], uitleg: "Images and videos, for example a poster made in Canva. Shown full screen." },
     links: { soorten: ["link"], uitleg: "External web pages. Some websites don't allow being shown inside another page: use Preview to check." } };
+  if (libTab === "components") return viewComponenten();
   const t = TABS[libTab] || TABS.slides, lijst = cfg.slides.filter(s => t.soorten.includes(soort(s)));
-  const add = { slides: `<button class="sk add" id="libAdd"><span>+</span>Add slide</button>`,
+  const add = { slides: `<button class="sk add" id="libAdd"><span>+</span>Compose slide<small>Combine a left panel and a main panel</small></button>
+      <button class="sk add klein" id="libHtml"><span>+</span>Add HTML file</button>`,
     media: `<button class="sk add" id="libAdd"><span>+</span>Upload images or videos<small>or drop files here · JPG, PNG, MP4 · max ${MAX_MB} MB</small></button>`,
     links: `<button class="sk add" id="libAdd"><span>+</span>Add web page</button>` }[libTab] || "";
-  $("#view").innerHTML = `
-    <div class="kop"><div><h1>Library</h1></div></div>
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
-      <div class="subtabs">${[["slides", "Slides", tel(["slide"])], ["media", "Media", tel(["image", "video"])], ["links", "Web pages", tel(["link"])]].map(([k, n, c]) => `<button class="${k === libTab ? "on" : ""}" data-tab="${k}">${n}<small>${c}</small></button>`).join("")}</div>
-    </div>
+  $("#view").innerHTML = `${libKop()}
     <div class="grid">
       ${lijst.map(s => { const g = gebruik(s.id); return `<div class="sk" data-id="${s.id}">
         ${duim(s)}
-        <div class="bd"><input class="nm" value="${esc(s.naam)}" aria-label="Name"><span class="url"><span class="soort">${SOORT[soort(s)].naam}</span>${esc(omschrijving(s))}</span>
+        <div class="bd"><input class="nm" value="${esc(s.naam)}" aria-label="Name"><span class="url"><span class="soort">${s.samengesteld ? "Composed" : SOORT[soort(s)].naam}</span>${esc(omschrijving(s))}</span>
           <span class="gebruik">${g.length ? "In " + g.map(esc).join(", ") : "Not in a playlist yet"}</span></div>
-        <div class="ft"><button class="btn klein tekst" data-vb>Preview</button><button class="btn klein tekst gevaar" data-del>Delete</button></div>
+        <div class="ft"><button class="btn klein tekst" data-vb>Preview</button>${s.samengesteld ? `<button class="btn klein tekst" data-edit>Edit</button><button class="btn klein tekst" data-dup>Duplicate</button>` : ""}<button class="btn klein tekst gevaar" data-del>Delete</button></div>
       </div>`; }).join("")}
       ${add}
     </div>`;
-  document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { libTab = b.dataset.tab; render(); });
+  libTabs();
   document.querySelectorAll(".sk[data-id]").forEach(el => {
     const s = S.slideById(cfg, el.dataset.id);
+    if (el.querySelector("[data-edit]")) el.querySelector("[data-edit]").onclick = () => componeer(s);
+    if (el.querySelector("[data-dup]")) el.querySelector("[data-dup]").onclick = () => {
+      const naam = s.naam + " (copy)", kopie = { ...kloon(s), id: nieuwId(naam, cfg.slides), naam };
+      cfg.slides.splice(cfg.slides.indexOf(s) + 1, 0, kopie); bewaar(); melding("Slide duplicated"); componeer(kopie);
+    };
     el.querySelector(".duim").onclick = el.querySelector("[data-vb]").onclick = () => voorbeeld(s.naam, s);
     el.querySelector(".nm").onchange = e => { s.naam = e.target.value.trim() || s.naam; bewaar(); };
     el.querySelector("[data-del]").onclick = () => metUndo(`${s.naam} deleted`, () => {
@@ -796,7 +843,7 @@ function viewLibrary() {
     });
   });
   const knop = $("#libAdd");
-  if (libTab === "slides") knop.onclick = nieuweSlide;
+  if (libTab === "slides") { knop.onclick = () => componeer(); $("#libHtml").onclick = nieuweSlide; }
   if (libTab === "links") knop.onclick = nieuweLink;
   if (libTab === "media") {
     knop.onclick = () => $("#uploadF").click();
@@ -804,6 +851,98 @@ function viewLibrary() {
     knop.ondragleave = () => knop.classList.remove("over");
     knop.ondrop = e => { e.preventDefault(); knop.classList.remove("over"); uploadAlles([...e.dataTransfer.files]); };
   }
+}
+function libKop() {
+  const tel = t => cfg.slides.filter(s => t.includes(soort(s))).length;
+  return `<div class="kop"><div><h1>Library</h1></div></div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+      <div class="subtabs">${[["slides", "Slides", tel(["slide"])], ["components", "Components", cfg.componenten.length], ["media", "Media", tel(["image", "video"])], ["links", "Web pages", tel(["link"])]].map(([k, n, c]) => `<button class="${k === libTab ? "on" : ""}" data-tab="${k}">${n}<small>${c}</small></button>`).join("")}</div>
+    </div>`;
+}
+function libTabs() { document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { libTab = b.dataset.tab; render(); }); }
+
+/* Componenten: een benoemd paneel (links of hoofddeel) uit een bestaande slide, om te hergebruiken */
+function viewComponenten() {
+  const gebruikt = c => cfg.slides.filter(x => x.samengesteld && (x.samengesteld.links === c.id || x.samengesteld.rechts === c.id));
+  const kaart = c => { const b = bronVan(c), g = gebruikt(c); return `<div class="sk" data-c="${c.id}">
+      ${compDuim(c)}
+      <div class="bd"><input class="nm" value="${esc(c.naam)}" aria-label="Name"><span class="url"><span class="soort">${DEEL[c.deel]}</span>${b ? "from " + esc(b.naam) : "source slide missing"}</span>
+        <span class="gebruik">${g.length ? "In " + g.map(x => esc(x.naam)).join(", ") : "Not used yet"}</span></div>
+      <div class="ft"><button class="btn klein tekst" data-edit>Edit</button><button class="btn klein tekst gevaar" data-del>Delete</button></div>
+    </div>`; };
+  $("#view").innerHTML = `${libKop()}
+    <div class="grid">
+      ${["links", "rechts"].map(d => cfg.componenten.filter(c => c.deel === d).map(kaart).join("")).join("")}
+      <button class="sk add" id="libAdd"><span>+</span>New component<small>Name a panel of an existing slide to reuse it</small></button>
+    </div>`;
+  libTabs();
+  $("#libAdd").onclick = () => component();
+  document.querySelectorAll(".sk[data-c]").forEach(el => {
+    const c = compById(el.dataset.c);
+    el.querySelector(".duim").onclick = el.querySelector("[data-edit]").onclick = () => component(c);
+    el.querySelector(".nm").onchange = e => { c.naam = e.target.value.trim() || c.naam; bewaar(); };
+    el.querySelector("[data-del]").onclick = () => {
+      const g = gebruikt(c);
+      if (g.length) return info("Still in use", `${esc(c.naam)} is used in ${g.map(x => "<b>" + esc(x.naam) + "</b>").join(", ")}. Change or delete those slides first.`);
+      metUndo(`${c.naam} deleted`, () => { cfg.componenten = cfg.componenten.filter(x => x !== c); });
+    };
+  });
+}
+function component(c) {
+  const nieuw = !c, w = c ? { ...c } : { naam: "", slide: (htmlSlides()[0] || {}).id, deel: "rechts" };
+  open(`<div class="mk"><h2>${nieuw ? "New component" : "Edit component"}</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+    <div class="veld"><label for="cNaam">Name</label><input id="cNaam" value="${esc(w.naam)}" placeholder="e.g. Clock and weather"></div>
+    <div class="veld"><label for="cBron">From slide</label><select id="cBron">${htmlSlides().map(x => `<option value="${x.id}" ${x.id === w.slide ? "selected" : ""}>${esc(x.naam)}</option>`).join("")}</select></div>
+    <div class="veld"><label>Part</label><div class="seg2" id="cDeel">${Object.entries(DEEL).map(([k, n]) => `<button data-d="${k}" class="${k === w.deel ? "on" : ""}">${n}</button>`).join("")}</div></div>
+    <div id="cDuim"></div>
+    <div class="macties"><button class="btn" data-sluit>Cancel</button><button class="btn prim" id="cOk">${nieuw ? "Add" : "Save"}</button></div>`);
+  const teken = () => { $("#cDuim").innerHTML = compDuim(w).replace('class="duim"', 'class="duim groot"'); };
+  teken(); $("#cNaam").focus();
+  $("#cBron").onchange = e => { w.slide = e.target.value; teken(); };
+  document.querySelectorAll("#cDeel button").forEach(b => b.onclick = () => { w.deel = b.dataset.d; document.querySelectorAll("#cDeel button").forEach(x => x.classList.toggle("on", x === b)); teken(); });
+  $("#cOk").onclick = () => {
+    w.naam = $("#cNaam").value.trim();
+    if (!w.naam) return melding("Give the component a name");
+    if (!w.slide) return melding("Choose a slide");
+    if (nieuw) cfg.componenten.push({ id: nieuwId(w.naam, cfg.componenten), naam: w.naam, slide: w.slide, deel: w.deel });
+    else Object.assign(c, { naam: w.naam, slide: w.slide, deel: w.deel });
+    herbouw(); sluit(); libTab = "components"; bewaar(); melding(nieuw ? "Component added" : "Component saved");
+  };
+}
+
+/* Een slide samenstellen: kies een linkerpaneel en een hoofdpaneel */
+function componeer(s) {
+  const nieuw = !s, links = cfg.componenten.filter(c => c.deel === "links"), rechts = cfg.componenten.filter(c => c.deel === "rechts");
+  if (!links.length || !rechts.length) return info("Components needed", "A composed slide needs at least one left panel and one main panel. Add them under Library → Components.");
+  const w = { naam: s ? s.naam : "", links: s ? s.samengesteld.links : links[0].id, rechts: s ? s.samengesteld.rechts : rechts[0].id };
+  const keuze = (lijst, sleutel) => `<div class="kiesgrid">${lijst.map(c => `<button data-k="${sleutel}" data-id="${c.id}" class="${w[sleutel] === c.id ? "on" : ""}">${compDuim(c)}<b>${esc(c.naam)}</b></button>`).join("")}</div>`;
+  open(`<div class="mk"><h2>${nieuw ? "Compose slide" : "Edit slide"}</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
+    <div class="samen">
+      <div style="display:grid;gap:22px">
+        <div class="veld"><label for="sNaam">Name</label><input id="sNaam" value="${esc(w.naam)}" placeholder="e.g. Firing ranges with weather"></div>
+        <div class="kz"><b>Left panel</b>${keuze(links, "links")}</div>
+        <div class="kz"><b>Main panel</b>${keuze(rechts, "rechts")}</div>
+      </div>
+      <div class="vb" id="vbKader"><iframe id="vbFrame" title="Preview"></iframe></div>
+    </div>
+    <div class="macties"><button class="btn" data-sluit>Cancel</button><button class="btn prim" id="sOk">${nieuw ? "Add to library" : "Save"}</button></div>`, true);
+  const f = $("#vbFrame"), k = $("#vbKader");
+  const schaal = () => f.style.transform = `scale(${k.clientWidth / 1920})`; schaal(); new ResizeObserver(schaal).observe(k);
+  const toon = () => { f.src = samenUrl(w.links, w.rechts) || "about:blank"; };
+  toon(); $("#sNaam").focus();
+  document.querySelectorAll("#mbox [data-k]").forEach(b => b.onclick = () => {
+    w[b.dataset.k] = b.dataset.id;
+    document.querySelectorAll(`#mbox [data-k="${b.dataset.k}"]`).forEach(x => x.classList.toggle("on", x === b));
+    toon();
+  });
+  $("#sOk").onclick = () => {
+    const naam = $("#sNaam").value.trim() || [compById(w.links), compById(w.rechts)].map(c => c.naam).join(" + ");
+    const url = samenUrl(w.links, w.rechts);
+    if (!url) return melding("The source slide of a component is missing");
+    if (nieuw) cfg.slides.push({ id: nieuwId(naam, cfg.slides), naam, type: "slide", url, samengesteld: { links: w.links, rechts: w.rechts } });
+    else Object.assign(s, { naam, url, samengesteld: { links: w.links, rechts: w.rechts } });
+    sluit(); libTab = "slides"; bewaar(); melding(nieuw ? "Slide added to the library" : "Slide saved");
+  };
 }
 function nieuweSlide() {
   open(`<div class="mk"><h2>Add slide</h2><button class="icoon" data-sluit aria-label="Close">×</button></div>
