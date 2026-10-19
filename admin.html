@@ -59,6 +59,7 @@ nav.tabs a.on{background:var(--pinetint);color:#17615b}
 .icoon svg{width:20px;height:20px}
 .demo{background:var(--ytint);color:var(--fg);text-align:center;font-size:13px;font-weight:700;padding:8px 16px}
 
+html{scrollbar-gutter:stable}
 main{padding:64px 0 120px}
 .kicker{font-size:14px;font-weight:600;color:var(--muted)}
 h1{font-size:30px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
@@ -405,7 +406,7 @@ function metUndo(tekst, doe) {
 
 /* ---------- navigatie ---------- */
 function ga(v) { view = v; if (location.hash !== "#" + v) history.replaceState(null, "", "#" + v); render(); }
-window.addEventListener("hashchange", () => ga((location.hash || "#now").slice(1)));
+window.addEventListener("hashchange", () => { const v = (location.hash || "#now").slice(1); if (v !== view) window.scrollTo(0, 0); ga(v); });
 function render() {
   document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.v === view));
   ({ now: viewNu, screens: viewScreens, playlists: viewPlaylists, library: viewLibrary }[view] || viewNu)();
@@ -416,8 +417,8 @@ const spelerLink = sc => new URL("index.html" + (cfg.schermen[0].id === sc.id ? 
 /* ============================================================ NOW */
 function volgendeWissel(van, sc) {
   const huidig = (S.actievePlaylist(cfg, van, sc.id).playlist || {}).id;
-  const t = new Date(van); t.setSeconds(0, 0); t.setMinutes(Math.ceil(t.getMinutes() / 15) * 15);
-  for (let i = 0; i < 8 * 96; i++, t.setMinutes(t.getMinutes() + 15)) {
+  const t = new Date(van); t.setSeconds(0, 0); t.setMinutes(t.getMinutes() + 1);
+  for (let i = 0; i < 8 * 1440; i++, t.setMinutes(t.getMinutes() + 1)) {
     const p = S.actievePlaylist(cfg, t, sc.id).playlist;
     if ((p || {}).id !== huidig) return { tijd: new Date(t), pl: p };
   }
@@ -430,6 +431,7 @@ function viewNu() {
   const wissel = w ? `${w.tijd.toDateString() === nu.toDateString() ? "Today" : DAGNAAM[S.dag(w.tijd) - 1]} at ${S.hm(w.tijd)}` : "";
   const vandaag = [...new Set(segmenten(nu, sc).map(s => s.id).filter(Boolean))];
   $("#view").innerHTML = `
+    <div class="kop"><div><h1>Now</h1></div></div>
     ${cfg.schermen.length > 1 ? `<div class="schermen">${cfg.schermen.map(x => `<button class="${x.id === sc.id ? "on" : ""}" data-sc="${x.id}">${ICON.tv}${esc(x.naam)}</button>`).join("")}</div>` : ""}
     <section class="vandaagblok">
       <div class="weekkop"><span class="kicker">Today on ${esc(sc.naam)}</span>
