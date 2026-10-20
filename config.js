@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 10,
-  "bijgewerkt": "2026-10-20T13:38:49.323Z",
+  "versie": 11,
+  "bijgewerkt": "2026-10-20T13:46:37.155Z",
   "slides": [
     {
       "id": "programma",
@@ -125,7 +125,7 @@ window.SIGNAGE_CONFIG = {
       ],
       "ticker": [
         "b1",
-        "bmvgqb1qh"
+        "bmvgql449"
       ]
     },
     {
@@ -183,7 +183,7 @@ window.SIGNAGE_CONFIG = {
       ],
       "ticker": [
         "b1",
-        "b2"
+        "bmvgql449"
       ]
     }
   ],
@@ -252,6 +252,10 @@ window.SIGNAGE_CONFIG = {
     {
       "id": "bmvgqb1qh",
       "tekst": "Test"
+    },
+    {
+      "id": "bmvgql449",
+      "tekst": "Feest!"
     }
   ]
 };
