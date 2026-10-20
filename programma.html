@@ -205,12 +205,26 @@ header{padding:3vh 3.5vw !important}
 </div>
 
 <script>
-/* Vandaag op het water. Tijdelijk vast in dit bestand; later komt deze lijst automatisch uit de agenda. */
-const PROGRAMMA=[
-  {boot:"Blauwvoet", lesgever:"Peter Van Giel", cursus:"Kustvaart"},
-  {boot:"Breydel",   lesgever:"Eric Michiels",  cursus:"Initiatie"},
-  {boot:"Gust",      lesgever:"Bert Baeyens",   cursus:"Zeevaart"}
-];
+/* Vandaag op het water: komt automatisch uit de planning (Google Sheet, via Apps Script).
+   PLANNING_URL = adres van de web-app. Lukt het ophalen niet, dan blijft de laatst geladen lijst van vandaag staan. */
+const PLANNING_URL="https://script.google.com/macros/s/AKfycbwPaD9uH07CsKeS5p9u3Mp8iCe0bHE_h-blm0Lg-0sCxbzGHZJeOEVFMyOBKSxaMSwf/exec";
+const MAX_LIJNEN=10;   // er passen 10 lijnen op het scherm
+let PROGRAMMA=[];
+let geladen=false;
+const vandaagKey=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return p(n.getDate())+"/"+p(n.getMonth()+1);};
+function bewaar(lijst){try{localStorage.setItem("vvs-programma",JSON.stringify({datum:vandaagKey(),lijst}));}catch(e){}}
+function uitGeheugen(){try{const o=JSON.parse(localStorage.getItem("vvs-programma")||"null");return o&&o.datum===vandaagKey()?o.lijst:null;}catch(e){return null;}}
+async function loadProgramma(){
+  try{
+    const r=await fetch(PLANNING_URL+"?datum="+encodeURIComponent(vandaagKey()),{cache:"no-store"});
+    const d=await r.json();if(!r.ok||!Array.isArray(d.lessen))throw 0;
+    PROGRAMMA=d.lessen.map(l=>({boot:l.boot,lesgever:l.lesgever||"",cursus:l.cursus})).slice(0,MAX_LIJNEN);
+    geladen=true;bewaar(PROGRAMMA);
+  }catch(e){
+    const oud=uitGeheugen();if(oud){PROGRAMMA=oud;geladen=true;}
+  }
+  render();
+}
 const LAT=51.17, LON=2.72;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -227,7 +241,7 @@ const ICON={
 
 function render(){
   const L=$("list");L.innerHTML="";
-  if(!PROGRAMMA.length){L.innerHTML=`<div class="empty">Vandaag geen boten op het water.</div>`;return;}
+  if(!PROGRAMMA.length){L.innerHTML=geladen?`<div class="empty">Vandaag geen boten op het water.</div>`:"";return;}
   PROGRAMMA.forEach(p=>{const r=document.createElement("div");r.className="r";
     r.innerHTML=`<div class="pill boot">${MOTORBOTEN.some(m=>m.toLowerCase()===String(p.boot).toLowerCase())?ICON.motor:ICON.boot}<span>${esc(p.boot)}</span></div><div class="pill lesgever">${ICON.lesgever}<span>${esc(p.lesgever)}</span></div><div class="pill cursus">${ICON.cursus}<span>${esc(p.cursus)}</span></div>`;
     L.appendChild(r);});
@@ -343,7 +357,7 @@ function startTicker(){
   tr.style.animation=`tickerLoop ${w/TICKER_SNELHEID}s linear infinite`;
 }
 document.fonts&&document.fonts.ready?document.fonts.ready.then(startTicker):startTicker();
-tick();setInterval(tick,1000);render();loadWx();setInterval(loadWx,15*60*1000);
+tick();setInterval(tick,1000);render();loadProgramma();setInterval(loadProgramma,15*60*1000);loadWx();setInterval(loadWx,15*60*1000);
 setTimeout(()=>location.reload(),6*36e5);
 </script>
 </body>
