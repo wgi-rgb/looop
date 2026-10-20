@@ -314,6 +314,7 @@ function tijType(d){
    is de opzet of afzet door wind en luchtdruk. Bij een storing: gewoon de voorspelling. */
 const MEETNET_URL="https://script.google.com/macros/s/AKfycbyqwihodr-9sSxnsg8s-4m0jpcdCpMeMi9-0u7YmMVJE1ZrU1nbyXQ88DQ4D0jSqmms/exec";
 let METING=null;
+const OPZET_TOON=.30, OPZET_ROOD=.50;   // verschil met de voorspelling (m): pas melden vanaf 30 cm, rood vanaf 50 cm
 async function loadMeting(){
   try{const r=await fetch(MEETNET_URL,{cache:"no-store"});const d=await r.json();const v=d.reeksen&&d.reeksen.NPTWS5;
     if(Array.isArray(v)&&v.length){METING=v.filter(x=>x[1]!=null).map(([t,c])=>({t:new Date(t),h:c/100}));renderGetij();}}catch(e){}
@@ -359,7 +360,7 @@ function renderGetij(){
   const opzet=gm?(Math.abs(dv)<.05?"zoals voorspeld":`${m2(Math.abs(dv))} m ${dv>0?"hoger":"lager"} dan voorspeld`):"";
   $("gnow").innerHTML=`<div class="k">${gm?"Gemeten "+hm(gm.t):"Nu · voorspeld"}</div><div class="h"><b>${m2(gm?gm.h:h)}</b><small>m</small></div>
     <div class="tr" style="color:${stijgt?SEA:"var(--fg)"}">${stijgt?PIJL_OP:PIJL_NEER}${stijgt?"Opkomend":"Afgaand"}</div>
-    <div class="nx">${stijgt?"Hoogwater":"Laagwater"} over <b>${uu?uu+" u ":""}${uu?pad2(mm):mm} min</b></div>${gm?`<div class="nx op${Math.abs(dv)>=.2?" sterk":""}">${opzet}</div>`:""}`;
+    <div class="nx">${stijgt?"Hoogwater":"Laagwater"} over <b>${uu?uu+" u ":""}${uu?pad2(mm):mm} min</b></div>${gm&&Math.abs(dv)>=OPZET_TOON?`<div class="nx op${Math.abs(dv)>=OPZET_ROOD?" sterk":""}">${opzet}</div>`:""}`;
   const vandaag=GETIJ.filter(e=>e.t>=d0&&e.t<d1);
   const tegels=vandaag.map(e=>`<div class="gx ${e.s==="H"?"hw":"lw"}${e.t<nu?" voorbij":""}"><div class="k">${e.s==="H"?PIJL_OP:PIJL_NEER}${e.s==="H"?"Hoogwater":"Laagwater"}</div><div class="t">${hm(e.t)}</div><div class="v">${m2(e.h)} m</div></div>`);
   while(tegels.length<4)tegels.push(`<div class="gx leeg"></div>`);
