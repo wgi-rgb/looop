@@ -209,6 +209,8 @@ header{padding:3vh 3.5vw !important}
    PLANNING_URL = adres van de web-app. Lukt het ophalen niet, dan blijft de laatst geladen lijst van vandaag staan. */
 const PLANNING_URL="https://script.google.com/macros/s/AKfycbwPaD9uH07CsKeS5p9u3Mp8iCe0bHE_h-blm0Lg-0sCxbzGHZJeOEVFMyOBKSxaMSwf/exec";
 const MAX_LIJNEN=10;   // er passen 10 lijnen op het scherm
+/* Kortere cursusnamen op het scherm (cursuscode -> naam). Niet vermeld = naam uit de planning. */
+const KORTE_NAMEN={PTS:"Praktijkexamen AS", PTY:"Praktijktest YM"};
 let PROGRAMMA=[];
 let geladen=false;
 const vandaagKey=()=>{const n=new Date(),p=v=>String(v).padStart(2,"0");return p(n.getDate())+"/"+p(n.getMonth()+1);};
@@ -218,7 +220,7 @@ async function loadProgramma(){
   try{
     const r=await fetch(PLANNING_URL+"?datum="+encodeURIComponent(vandaagKey()),{cache:"no-store"});
     const d=await r.json();if(!r.ok||!Array.isArray(d.lessen))throw 0;
-    PROGRAMMA=d.lessen.map(l=>({boot:l.boot,lesgever:l.lesgever||"",cursus:l.cursus})).slice(0,MAX_LIJNEN);
+    PROGRAMMA=d.lessen.map(l=>({boot:l.boot,lesgever:l.lesgever||"",cursus:KORTE_NAMEN[l.code]||l.cursus})).slice(0,MAX_LIJNEN);
     geladen=true;bewaar(PROGRAMMA);
   }catch(e){
     const oud=uitGeheugen();if(oud){PROGRAMMA=oud;geladen=true;}
