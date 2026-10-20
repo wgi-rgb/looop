@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 9,
-  "bijgewerkt": "2026-10-20T13:04:37.000Z",
+  "versie": 10,
+  "bijgewerkt": "2026-10-20T13:38:49.323Z",
   "slides": [
     {
       "id": "programma",
@@ -125,7 +125,7 @@ window.SIGNAGE_CONFIG = {
       ],
       "ticker": [
         "b1",
-        "b2"
+        "bmvgqb1qh"
       ]
     },
     {
@@ -248,6 +248,10 @@ window.SIGNAGE_CONFIG = {
     {
       "id": "b2",
       "tekst": "Restaurant 't Galjoen is gesloten van maandag 5 tot woensdag 7 november - reservaties zijn verplaatst naar Restaurant De Vierboete :-)"
+    },
+    {
+      "id": "bmvgqb1qh",
+      "tekst": "Test"
     }
   ]
 };
