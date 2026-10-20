@@ -177,6 +177,15 @@ h2{font-size:20px;margin:0;font-weight:700}
 .sw.on::after{transform:translateX(18px)}
 .weg{border:0;background:none;width:36px;height:36px;border-radius:50%;color:var(--soft);font-size:20px;flex:none}
 .weg:hover{background:var(--panel);color:var(--red)}
+/* ticker per playlist: berichten aan- en uitvinken, tekst meteen aanpassen */
+.tickered{display:grid;gap:10px;margin-top:12px;padding-top:24px;border-top:1px solid var(--line)}
+.tickered .tkop{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.tickered .tkop h3{margin:0;font-size:17px}
+.bericht{display:flex;align-items:center;gap:12px;padding:6px 6px 6px 14px;background:#fff;border:1px solid var(--line);border-radius:var(--r);transition:opacity .2s}
+.bericht input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-weight:600;padding:8px 0;outline:none}
+.bericht input:focus{box-shadow:0 2px 0 var(--pine)}
+.bericht.uit input{color:var(--muted)}
+.tickered .leeg{color:var(--muted);font-size:14px}
 
 /* ---------- schema's van een scherm ---------- */
 .std{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;font-weight:600}
@@ -713,7 +722,7 @@ function viewPlaylists() {
   document.querySelectorAll(".lk[data-id]").forEach(b => b.onclick = () => { gekozen = b.dataset.id; render(); });
   $("#nieuwePl").onclick = async () => {
     const naam = await vraagNaam("New playlist", "Name", "New playlist"); if (!naam) return;
-    const id = nieuwId(naam, cfg.playlists); cfg.playlists.push({ id, naam, items: [] }); gekozen = id; bewaar(); melding("Playlist created");
+    const id = nieuwId(naam, cfg.playlists); cfg.playlists.push({ id, naam, items: [], ticker: (cfg.berichten || []).map(b => b.id) }); gekozen = id; bewaar(); melding("Playlist created");
   };
   if (pl) koppelEditor(pl);
 }
@@ -744,7 +753,36 @@ function editor(pl) {
       <button class="btn zwart" id="itemErbij">+ Add from library</button>
       <span class="sub">One loop takes <b style="color:var(--fg)">${duurTekst(rondje(pl))}</b></span>
     </div>
+    ${tickerEditor(pl)}
   </div>`;
+}
+/* Ticker: alle berichten staan klaar; per playlist zet je aan welke er onderaan meelopen.
+   Een tekst aanpassen geldt voor elke playlist die dat bericht gebruikt. */
+function tickerEditor(pl) {
+  const aan = id => (pl.ticker || []).includes(id), n = S.tickerVoor(cfg, pl).length;
+  return `<div class="tickered">
+    <div class="tkop"><h3>Ticker</h3><span class="sub">${n ? `${n} message${n > 1 ? "s" : ""} scroll along the bottom of the slides` : "Off: no messages selected, the ticker is hidden"}</span></div>
+    <div id="berichten" style="display:grid;gap:8px">${(cfg.berichten || []).map(b => `<div class="bericht ${aan(b.id) ? "" : "uit"}" data-id="${esc(b.id)}">
+        <input value="${esc(b.tekst)}" placeholder="Message text" aria-label="Message">
+        <button class="sw ${aan(b.id) ? "on" : ""}" aria-pressed="${aan(b.id)}" title="${aan(b.id) ? "Shown in this playlist" : "Not shown in this playlist"}" aria-label="Show in this playlist"></button>
+        <button class="weg" title="Delete this message everywhere" aria-label="Delete">×</button></div>`).join("") || `<div class="leeg">No messages yet.</div>`}</div>
+    <div><button class="btn klein" id="nieuwBericht">+ New message</button></div>
+  </div>`;
+}
+function koppelTicker(pl) {
+  if (!Array.isArray(pl.ticker)) pl.ticker = [];
+  document.querySelectorAll("#berichten .bericht").forEach(el => {
+    const b = cfg.berichten.find(x => x.id === el.dataset.id), inp = el.querySelector("input");
+    inp.onchange = () => { b.tekst = inp.value.trim(); bewaar(false); melding("Message saved"); };
+    inp.onkeydown = e => { if (e.key === "Enter") inp.blur(); };
+    el.querySelector(".sw").onclick = () => { pl.ticker = pl.ticker.includes(b.id) ? pl.ticker.filter(x => x !== b.id) : [...pl.ticker, b.id]; bewaar(); };
+    el.querySelector(".weg").onclick = () => metUndo("Message deleted", () => { cfg.berichten = cfg.berichten.filter(x => x !== b); cfg.playlists.forEach(p => p.ticker = (p.ticker || []).filter(x => x !== b.id)); });
+  });
+  $("#nieuwBericht").onclick = () => {
+    const id = "b" + Date.now().toString(36);
+    cfg.berichten = [...(cfg.berichten || []), { id, tekst: "" }]; pl.ticker = [...pl.ticker, id]; bewaar();
+    const nieuw = document.querySelector(`#berichten .bericht[data-id="${id}"] input`); if (nieuw) nieuw.focus();
+  };
 }
 /* duur in stappen: 1 s onder 10 s, daarboven 5 s */
 const stap = (d, r) => r > 0 ? (d < 10 ? d + 1 : d + 5 - d % 5) : (d <= 10 ? d - 1 : (d % 5 ? d - d % 5 : d - 5));
@@ -771,6 +809,7 @@ function koppelEditor(pl) {
     el.querySelector(".weg").onclick = () => { const s = S.slideById(cfg, it.slide); metUndo(`${s ? s.naam : "Item"} removed`, () => pl.items.splice(+el.dataset.i, 1)); };
   });
   sorteer($("#items"), ".item", (van, naar) => { const [x] = pl.items.splice(van, 1); pl.items.splice(naar, 0, x); bewaar(); });
+  koppelTicker(pl);
 }
 function kiesItem(pl, tab = "slide") {
   const tabs = [["slide", "Slides"], ["image,video", "Media"], ["link", "Web pages"]];

@@ -61,7 +61,7 @@ function huidigePlaylist() {
 let teller = 0;
 /* Laad een slide in een (verborgen) frame. Altijd vers laden, zodat weer en webcam actueel zijn. */
 function laad(frame, slide) {
-  frame.dataset.slide = slide.id;
+  frame.dataset.slide = slide.id; frame.tickerKey = null;
   frame.klaar = new Promise(res => {
     let klaar = false;
     const af = () => { if (!klaar) { klaar = true; res(); } };
@@ -122,6 +122,7 @@ async function volgende() {
   const k = (pl && pl.id) + JSON.stringify(nieuw.map(s => s.id + s.url + s.duur));
   if (k !== sleutel) { sleutel = k; lijst = nieuw; idx = -1; plId = pl && pl.id; }
   toonTag(pl);
+  stuurTicker();
   if (!lijst.length) {
     frames.forEach(f => { f.classList.remove("zicht"); f.removeAttribute("src"); f.dataset.slide = ""; });
     timer = setTimeout(volgende, 30 * 1000);
@@ -150,6 +151,15 @@ async function volgende() {
   timer = setTimeout(volgende, Math.max(.3, rest) * 1000 + 50);
 }
 
+/* Tickerberichten van de huidige playlist doorgeven aan de slides (alleen bij een wijziging) */
+function tickerTekst() { return S.tickerVoor(cfg, huidigePlaylist()); }
+function stuurTicker(frame) {
+  const b = tickerTekst(), k = JSON.stringify(b);
+  (frame ? [frame] : frames).forEach(f => {
+    if (!f.contentWindow || (!frame && (f.tickerKey == null || f.tickerKey === k))) return;
+    f.contentWindow.postMessage({ type: "looop-ticker", berichten: b }, "*"); f.tickerKey = k;
+  });
+}
 /* in het beheer: laten weten welke slide nu speelt */
 function meld(pl, i, slide, rest) {
   if (PREVIEW) parent.postMessage({ type: "looop-speelt", playlist: pl && pl.id, index: i, slide: slide && slide.id, duur: slide && slide.duur, rest }, "*");
@@ -183,6 +193,7 @@ async function check() {
 window.addEventListener("message", e => {
   if (e.data && e.data.type === "looop-config") { cfg = S.migreer(e.data.cfg); sleutel = ""; volgende(); }
   if (e.data && e.data.type === "looop-nu") { NU = e.data.nu || {}; volgende(); }
+  if (e.data && e.data.type === "looop-ticker-vraag") { const f = frames.find(x => x.contentWindow === e.source); if (f) stuurTicker(f); }
 });
 
 /* Nachtelijke herstart om 04:00 */

@@ -414,14 +414,18 @@ const TICKER_SNELHEID=75;
 const MORSE=`<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>`;   // eenvoudige punt tussen de berichten
 const MEGAFOON=`<svg viewBox="0 0 256 256"><path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"/></svg>`;   // nieuwsicoon tussen de berichten   // pixels per seconde: rustig leesbaar op tv-afstand
 function startTicker(){
-  const tr=$("track");if(!tr)return;$("mouth").innerHTML=MEGAFOON;
+  const tr=$("track");if(!tr)return;const band=tr.closest(".ticker");if(band)band.style.display=BERICHTEN.length?"":"none";if(!BERICHTEN.length)return;$("mouth").innerHTML=MEGAFOON;
   const one=BERICHTEN.map(b=>`<i>${MORSE}</i><span>${b.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</span>`).join("");
   tr.innerHTML=one;const w=tr.scrollWidth||1,box=tr.parentElement.clientWidth;
   const reps=Math.max(2,Math.ceil(box/w)+1);tr.innerHTML=one.repeat(reps);
   /* CSS-animatie i.p.v. JavaScript: loopt op de grafische kaart, ook vloeiend op een trage tv */
-  const k=document.createElement("style");k.textContent=`@keyframes tickerLoop{from{transform:translate3d(0,0,0)}to{transform:translate3d(${-w}px,0,0)}}`;document.head.append(k);
+  const k=document.getElementById("tickerKF")||document.head.appendChild(Object.assign(document.createElement("style"),{id:"tickerKF"}));tr.style.animation="none";tr.offsetWidth;k.textContent=`@keyframes tickerLoop{from{transform:translate3d(0,0,0)}to{transform:translate3d(${-w}px,0,0)}}`;
   tr.style.animation=`tickerLoop ${w/TICKER_SNELHEID}s linear infinite`;
 }
+/* LOOOP: in de speler komen de tickerberichten uit het beheer (playlist → Ticker).
+   Zonder speler (slide los geopend) gelden de BERICHTEN hierboven. Geen berichten = geen ticker. */
+window.addEventListener("message",e=>{if(e.data&&e.data.type==="looop-ticker"&&Array.isArray(e.data.berichten)){BERICHTEN.splice(0,BERICHTEN.length,...e.data.berichten);startTicker();}});
+if(window.parent!==window)window.parent.postMessage({type:"looop-ticker-vraag"},"*");
 document.fonts&&document.fonts.ready?document.fonts.ready.then(startTicker):startTicker();
 /* ---------- mededeling ---------- */
 /* Inhoud van de mededeling. Pas de teksten hier aan; later kan dit uit een gedeeld document komen. */

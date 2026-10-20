@@ -1,6 +1,6 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 8,
+  "versie": 9,
   "bijgewerkt": "2026-10-20T13:04:37.000Z",
   "slides": [
     {
@@ -122,6 +122,10 @@ window.SIGNAGE_CONFIG = {
           "slide": "webcam-oostende",
           "duur": 15
         }
+      ],
+      "ticker": [
+        "b1",
+        "b2"
       ]
     },
     {
@@ -144,6 +148,10 @@ window.SIGNAGE_CONFIG = {
           "slide": "webcam-oostende",
           "duur": 8
         }
+      ],
+      "ticker": [
+        "b1",
+        "b2"
       ]
     },
     {
@@ -158,6 +166,10 @@ window.SIGNAGE_CONFIG = {
           "slide": "marifoon",
           "duur": 20
         }
+      ],
+      "ticker": [
+        "b1",
+        "b2"
       ]
     },
     {
@@ -168,6 +180,10 @@ window.SIGNAGE_CONFIG = {
           "slide": "marifoon",
           "duur": 5
         }
+      ],
+      "ticker": [
+        "b1",
+        "b2"
       ]
     }
   ],
@@ -222,6 +238,16 @@ window.SIGNAGE_CONFIG = {
           "aan": false
         }
       ]
+    }
+  ],
+  "berichten": [
+    {
+      "id": "b1",
+      "tekst": "Vaargeul Nieuwpoort gestremd van zaterdag 17 oktober tot 2 november"
+    },
+    {
+      "id": "b2",
+      "tekst": "Restaurant 't Galjoen is gesloten van maandag 5 tot woensdag 7 november - reservaties zijn verplaatst naar Restaurant De Vierboete :-)"
     }
   ]
 };

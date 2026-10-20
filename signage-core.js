@@ -50,6 +50,9 @@
     cfg.slides.forEach(s => { if (!s.type) s.type = "slide"; });
     cfg.playlists.forEach(p => (p.items || []).forEach(i => { if (!i.duur) { const s = slideById(cfg, i.slide); i.duur = Number((s && s.duur) || 15); } }));
     cfg.slides.forEach(s => { if (s.type !== "video") delete s.duur; });
+    // versie 3: tickerberichten staan centraal; elke playlist kiest welke er lopen
+    if (!Array.isArray(cfg.berichten)) cfg.berichten = [];
+    cfg.playlists.forEach(p => { if (!Array.isArray(p.ticker)) p.ticker = cfg.berichten.map(b => b.id); });
     return cfg;
   }
 
@@ -77,6 +80,13 @@
     return null;
   }
 
+  /* De tickerberichten die in een playlist lopen, in de volgorde van de lijst. */
+  function tickerVoor(cfg, pl) {
+    if (!pl) return [];
+    const aan = pl.ticker || [];
+    return (cfg.berichten || []).filter(b => aan.includes(b.id) && String(b.tekst || "").trim()).map(b => b.tekst.trim());
+  }
+
   function leesConfigTekst(txt) {
     const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
     return JSON.parse(txt.slice(a, b + 1));
@@ -85,5 +95,5 @@
     "window.SIGNAGE_CONFIG = " + JSON.stringify(cfg, null, 2) + ";\n";
 
   window.Signage = { itemDuur, mediaHtml, schermById, migreer, DAGEN, pad, ymd, hm, dag, regelGeldt, actievePlaylist, playlistById, slideById,
-    speellijst, leesConfigTekst, schrijfConfigTekst };
+    speellijst, tickerVoor, leesConfigTekst, schrijfConfigTekst };
 })();

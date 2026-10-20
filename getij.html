@@ -168,7 +168,7 @@ header{padding:3vh 3.5vw !important}
 .wtag svg{width:1.7vh;height:1.7vh;fill:currentColor;flex:none}
 
 /* ===== getij ===== */
-.prog{grid-template-rows:auto auto 1fr auto !important}
+.prog{grid-template-rows:auto auto 1fr auto auto !important}
 .title{margin-bottom:var(--s4) !important}
 .gtop{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,2.4fr);gap:1vw;margin-bottom:var(--s3)}
 .gnow{background:var(--panel);border-radius:1.6vh;padding:var(--s3) 1.4vw;min-width:0;display:grid;align-content:center;gap:var(--s1)}
@@ -197,6 +197,18 @@ header{padding:3vh 3.5vw !important}
 .gmorgen b{color:var(--fg);font-weight:700}
 .gmorgen .tag{display:inline-flex;align-items:center;height:3.2vh;padding:0 .9vw;border-radius:999px;background:var(--yellow);color:var(--fg);font-weight:700;font-size:1.6vh;letter-spacing:.04em}
 .src{font-size:1.3vh;font-weight:600;color:var(--soft)}
+/* stroming in de geul: één rij per 2 uur, pijl = in (vloed) of uit (eb) */
+.gstroom{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:.3vw;row-gap:.6vh;align-items:center;margin-top:var(--s1)}
+.gstroom:empty{display:none}
+.gstroom .lb{grid-column:1/-1;display:flex;gap:.8vw;align-items:baseline;font-size:var(--t-label);font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);line-height:1.2}
+.gstroom .lb small{letter-spacing:.04em;text-transform:none;font-weight:600;color:var(--soft);font-size:1.25vh}
+.gstroom .c{display:flex;align-items:center;justify-content:center;gap:.25vw;height:3.6vh;border-radius:1vh;font-size:1.9vh;font-weight:800}
+.gstroom .c svg{width:1.6vh;height:1.6vh;fill:currentColor;flex:none}
+.gstroom .c.voorbij{opacity:.35}
+.gstroom .c.nu{outline:3px solid #070504;outline-offset:-3px}
+.gnow .st{display:flex;align-items:center;gap:.5vw;white-space:nowrap;font-size:var(--t-text);font-weight:700;margin-top:.4vh}
+.gnow .st svg{width:1.8vh;height:1.8vh;fill:currentColor}
+.demo{position:absolute;top:var(--s4);right:3.5vw;background:#e5483b;color:#fff;font-size:1.3vh;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:.5vh .8vw;border-radius:999px}
 
 </style>
 </head>
@@ -237,6 +249,7 @@ header{padding:3vh 3.5vw !important}
         <div class="gext" id="gext"></div>
       </div>
       <div class="gcurve"><svg id="gsvg" preserveAspectRatio="none"></svg></div>
+      <div class="gstroom" id="gstroom"></div>
       <div class="gmorgen" id="gmorgen"></div>
       <div class="src">Bron: Getijtafels 2026 · MDK – Vlaamse Hydrografie · astronomisch getij, zonder windopzet · hoogtes in m TAW</div>
     </section>
@@ -292,6 +305,34 @@ function tijType(d){
     if(f)return (f==="NM"||f==="VM")?"Springtij":"Doodtij";}
   return "";
 }
+
+/* ---------- stroming in de havengeul ----------
+   Bron volgt (Meetnet Vlaamse Banken). STROMING_BRON = null: geen stroming tonen.
+   Testen met fictieve gegevens: getij.html?stroomdemo=1 */
+const STROMING_BRON=null;
+const STROOM_DEMO=new URLSearchParams(location.search).has("stroomdemo");
+/* fictief: snelheid volgt de stijging/daling van het water, kentering ±20 min na hoog- en laagwater */
+function stroomDemo(t){
+  const a=hoogte(new Date(+t-25*6e4)),b=hoogte(new Date(+t-15*6e4));if(a==null||b==null)return null;
+  const v=(b-a)*6*2.1;   // m per uur → knopen (ruwe schaal, max ±2,5 kn bij springtij)
+  return {kn:Math.abs(v),in:v>0};
+}
+const stroomOp=t=>STROOM_DEMO?stroomDemo(t):null;
+const STROOM_IN=`<svg viewBox="0 0 24 24" style="transform:rotate(90deg)"><path d="M12 3l8 9h-5v9h-6v-9H4z"/></svg>`;   // pijl landinwaarts
+const STROOM_UIT=`<svg viewBox="0 0 24 24" style="transform:rotate(-90deg)"><path d="M12 3l8 9h-5v9h-6v-9H4z"/></svg>`;
+function stroomKleur(kn){const t=Math.min(1,kn/2.5);return `rgba(47,111,179,${(.12+t*.78).toFixed(2)})`;}
+function renderStroom(d0,nu){
+  const el=$("gstroom");if(!STROOM_DEMO&&!STROMING_BRON){el.innerHTML="";return;}
+  let h=`<div class="lb">Stroming in de geul<small>knopen · per 2 uur</small></div>`;
+  for(let u=0;u<24;u+=2){const t=new Date(+d0+(u+1)*36e5),s=stroomOp(t);if(!s){h+=`<div></div>`;continue;}
+    const c=stroomKleur(s.kn),donker=s.kn>1.3,isNu=nu>=new Date(+d0+u*36e5)&&nu<new Date(+d0+(u+2)*36e5),voorbij=new Date(+d0+(u+2)*36e5)<=nu;
+    h+=`<div class="c${isNu?" nu":""}${voorbij?" voorbij":""}" style="background:${c};color:${donker?"#fff":"#070504"}">${s.kn<.2?"·":(s.in?STROOM_IN:STROOM_UIT)+kom(s.kn.toFixed(1))}</div>`;}
+  el.innerHTML=h;
+  const s=stroomOp(nu);
+  if(s){const r=document.createElement("div");r.className="st";r.innerHTML=s.kn<.2?"Stroming: kentering":`${s.in?STROOM_IN:STROOM_UIT}Stroming ${kom(s.kn.toFixed(1))} kn · ${s.in?"vloed":"eb"}`;$("gnow").append(r);}
+  if(STROOM_DEMO&&!document.querySelector(".demo")){const d=document.createElement("div");d.className="demo";d.textContent="Fictieve stroming";document.querySelector(".prog").append(d);}
+}
+
 const ymdL=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
 function renderGetij(){
   const nu=new Date(),d0=new Date(nu.getFullYear(),nu.getMonth(),nu.getDate()),d1=new Date(+d0+864e5),d2=new Date(+d1+864e5);
@@ -311,6 +352,7 @@ function renderGetij(){
   const morgen=GETIJ.filter(e=>e.t>=d1&&e.t<d2);
   $("gmorgen").innerHTML=`<span class="k">Morgen</span>`+morgen.map(e=>`<span>${e.s==="H"?"HW":"LW"} <b>${hm(e.t)}</b> ${m2(e.h)} m</span>`).join("")+(type?`<span class="tag" style="margin-left:auto">${type}</span>`:"");
   tekenCurve(d0,d1,nu);
+  renderStroom(d0,nu);
 }
 function tekenCurve(d0,d1,nu){
   const svg=$("gsvg"),W=svg.clientWidth||1000,H=svg.clientHeight||300,padT=H*.16,padB=H*.24,axis=H*.1;
@@ -447,14 +489,18 @@ const TICKER_SNELHEID=75;
 const MORSE=`<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>`;   // eenvoudige punt tussen de berichten
 const MEGAFOON=`<svg viewBox="0 0 256 256"><path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"/></svg>`;   // nieuwsicoon tussen de berichten   // pixels per seconde: rustig leesbaar op tv-afstand
 function startTicker(){
-  const tr=$("track");if(!tr)return;$("mouth").innerHTML=MEGAFOON;
+  const tr=$("track");if(!tr)return;const band=tr.closest(".ticker");if(band)band.style.display=BERICHTEN.length?"":"none";if(!BERICHTEN.length)return;$("mouth").innerHTML=MEGAFOON;
   const one=BERICHTEN.map(b=>`<i>${MORSE}</i><span>${b.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</span>`).join("");
   tr.innerHTML=one;const w=tr.scrollWidth||1,box=tr.parentElement.clientWidth;
   const reps=Math.max(2,Math.ceil(box/w)+1);tr.innerHTML=one.repeat(reps);
   /* CSS-animatie i.p.v. JavaScript: loopt op de grafische kaart, ook vloeiend op een trage tv */
-  const k=document.createElement("style");k.textContent=`@keyframes tickerLoop{from{transform:translate3d(0,0,0)}to{transform:translate3d(${-w}px,0,0)}}`;document.head.append(k);
+  const k=document.getElementById("tickerKF")||document.head.appendChild(Object.assign(document.createElement("style"),{id:"tickerKF"}));tr.style.animation="none";tr.offsetWidth;k.textContent=`@keyframes tickerLoop{from{transform:translate3d(0,0,0)}to{transform:translate3d(${-w}px,0,0)}}`;
   tr.style.animation=`tickerLoop ${w/TICKER_SNELHEID}s linear infinite`;
 }
+/* LOOOP: in de speler komen de tickerberichten uit het beheer (playlist → Ticker).
+   Zonder speler (slide los geopend) gelden de BERICHTEN hierboven. Geen berichten = geen ticker. */
+window.addEventListener("message",e=>{if(e.data&&e.data.type==="looop-ticker"&&Array.isArray(e.data.berichten)){BERICHTEN.splice(0,BERICHTEN.length,...e.data.berichten);startTicker();}});
+if(window.parent!==window)window.parent.postMessage({type:"looop-ticker-vraag"},"*");
 document.fonts&&document.fonts.ready?document.fonts.ready.then(startTicker):startTicker();
 tick();setInterval(tick,1000);renderGetij();setInterval(renderGetij,60*1000);addEventListener('resize',renderGetij);loadWx();setInterval(loadWx,15*60*1000);
 setTimeout(()=>location.reload(),6*36e5);
