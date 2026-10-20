@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VVS Getij</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap">
+<style>
+/* ------------------------------------------------------------------
+   Ontwerpregels (gelden voor dit hele scherm)
+   1. Eén letter: Montserrat. Drie gewichten: 600 tekst, 700 labels, 800 waarden.
+   2. Vaste typeschaal: label 1.4vh · tekst 1.8vh · klein getal 2.6vh · titel 3vh · groot getal 5vh · klok 8vh.
+   3. Vaste ruimteschaal: 0.8 · 1.6 · 2.4 · 4 · 6.4 vh. Geen losse marges daarbuiten.
+   4. Alles links uitgelijnd op dezelfde kantlijn; centreren alleen binnen een vorm (roos, tegel, tag).
+   5. Kleur: zwart, grijs, wit, merkgeel. Windy-kleuren uitsluitend als gegevenskleur voor wind.
+   6. Geen contouren, geen schaduwen. Vlakken scheiden elkaar door kleur en witruimte.
+   7. Elke eenheid en elk gegeven één keer: richting één keer, "kn" één keer.
+   ------------------------------------------------------------------ */
+:root{
+  --bg:#ffffff; --fg:#070504; --muted:#6e6a66; --soft:#a8a49f; --line:#e8e6e1; --panel:#f4f3ef; --tag:#e9e8e3;
+  --yellow:#F8E700; --frost:#5b62b3;
+  --s1:.8vh; --s2:1.6vh; --s3:2.4vh; --s4:4vh; --s5:6.4vh;
+  --t-label:1.4vh; --t-text:1.8vh; --t-num-s:2.6vh; --t-title:3vh; --t-num-l:5vh; --t-clock:10vh;
+  --font:"Montserrat",system-ui,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);overflow:hidden;font-variant-numeric:tabular-nums}
+svg text{font-family:var(--font)}
+.screen{display:grid;grid-template-rows:auto 1fr;height:100%}
+
+/* header: identiek op alle schermen */
+header{display:flex;align-items:center;justify-content:space-between;padding:2.2vh 3.5vw;border-bottom:1px solid var(--line)}
+.logo{height:4.2vh;width:auto;display:block}
+header .day{font-size:1.8vh;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:var(--muted)}
+
+main{display:grid;grid-template-columns:1fr 2fr;min-height:0}
+.label{font-size:var(--t-label);font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- links: klok en weer ---------- */
+.side{background:var(--panel);padding:var(--s5) 3vw var(--s4) 3.5vw;display:grid;align-content:start;min-width:0}
+
+.clockrow{display:flex;align-items:center;height:9vh}
+.time{font-size:var(--t-clock);font-weight:800;line-height:1;letter-spacing:-.03em}
+.time .colon{transition:opacity .25s;display:inline-block;margin:0 .12em;transform:translateY(-.06em)}   /* ademruimte rond de dubbele punt, optisch gecentreerd op de cijfers */
+.date{display:flex;align-items:center;gap:1vw;margin-top:var(--s3);height:4.4vh;font-size:var(--t-title);font-weight:700}
+.date i{width:2.4vw;height:.6vh;background:var(--yellow);flex:none}
+
+.divider{height:3px;background:#ffffff;margin:var(--s3) 0 var(--s4)}
+
+.section .label{margin-bottom:var(--s2)}
+/* weer nu: bovenaan het weerbeeld (symbool + temperatuur + omschrijving), gecentreerd;
+   daaronder twee even brede tags in de stijl van de tegels: wind (Windy-kleur) en golfhoogte */
+.wind{display:grid;gap:var(--s4)}
+.hero{display:flex;align-items:stretch;justify-content:flex-start;gap:2vw}
+.hero svg.wxbig{width:23vh;height:20vh;flex:none}   /* bovenaan het kader is bijna altijd lucht: mag in de witruimte onder de lijn schuiven */   /* viewBox = grootste omtrek van alle weersymbolen samen: niets steekt uit, witruimte altijd gelijk */
+.hero .txt{min-width:0;display:grid;gap:1vh;align-self:flex-end;padding-bottom:calc((58 - var(--wxb,50)) / 53 * 20vh - .5vh)}   /* onderkant tekst = onderkant van de wolk (of zon) */
+.hero .temp{font-size:6.4vh;font-weight:800;line-height:1;letter-spacing:-.02em}
+.hero .desc{font-size:2.4vh;line-height:1.15;font-weight:700;color:var(--muted)}   /* lange omschrijving loopt door op een tweede regel */
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:.8vw}
+.fact{display:flex;align-items:center;justify-content:center;gap:.9vw;height:7vh;border-radius:999px;font-weight:800;white-space:nowrap}
+.fact .v{font-size:4.4vh;line-height:1;letter-spacing:-.02em}
+.fact small{font-size:1.8vh;font-weight:700;align-self:center;margin-left:-.4vw;opacity:.7}
+.bigchip svg{width:2.6vh;height:2.6vh;fill:currentColor}
+.bigchip .d{font-size:1.9vh;letter-spacing:.06em;min-width:4.4vh;text-align:right}   /* vaste breedte: ook NNW past */
+.bigchip .v{min-width:4.4vh;text-align:left}
+.fact.wave{background:#ffffff;color:var(--black,#070504)}
+.fact .wv{width:3.4vh;height:3.4vh;fill:none;stroke:#2f6fb3;stroke-width:2.4;stroke-linecap:round}
+
+.next{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vw;margin-top:var(--s4)}
+.tile{background:var(--bg);border-radius:1.2vh;padding:var(--s2) 0;display:grid;justify-items:center;gap:var(--s1)}
+.tile .t{font-size:var(--t-text);font-weight:600;color:var(--muted)}
+.tile svg.wx{width:6.4vh;height:6.4vh}
+.tile .temp{font-size:var(--t-num-s);font-weight:800;line-height:1}
+.chip{display:inline-flex;align-items:center;gap:.4vw;height:3.2vh;padding:0 .9vw;border-radius:999px;font-size:var(--t-text);font-weight:800}
+.chip svg{width:1.6vh;height:1.6vh;fill:currentColor}
+
+/* ---------- rechts: programma ---------- */
+.prog{padding:var(--s5) 3.5vw var(--s4) 3vw;display:grid;grid-template-rows:auto auto 1fr;min-width:0;min-height:0}
+.title{margin-top:11.4vh;height:4.4vh;display:flex;align-items:center;gap:1vw;margin-bottom:var(--s4);font-size:var(--t-title);font-weight:700}
+.title h2{margin:0;font:inherit}
+.title i{width:2.4vw;height:.6vh;background:var(--yellow);flex:none}
+.cols,.r{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:1.2vw;align-items:center}
+.cols{padding:0 0 var(--s2) 1.5vw}
+.list{display:grid;gap:var(--s1);align-content:start;min-height:0}
+.pill{display:flex;align-items:center;gap:1vw;height:4.6vh;padding:0 1.5vw;border-radius:999px;min-width:0;font-weight:800;font-size:2.1vh}   /* vaste rijhoogte: er passen altijd 10 lijnen */
+.pill svg{width:2.8vh;height:2.8vh;flex:none;fill:currentColor}
+.pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill.boot{background:var(--fg);color:#ffffff;text-transform:uppercase;letter-spacing:.06em}
+.pill.lesgever{background:var(--tag);color:var(--fg)}
+.pill.cursus{background:var(--yellow);color:var(--fg)}
+.pill svg.line{fill:none;stroke:currentColor;stroke-width:16;stroke-linejoin:round;stroke-linecap:round}
+.frost{color:var(--frost)!important}   /* vriestemperaturen (0° en lager) in ijs-indigo: duidelijk anders dan het blauw van neerslag */
+.empty{font-size:var(--t-title);font-weight:700;color:var(--muted)}
+/* ticker: smalle gele band onderaan, tekst loopt van rechts naar links */
+.screen{grid-template-rows:auto 1fr auto !important}
+.ticker{height:6.2vh;background:var(--yellow);color:var(--fg);display:flex;align-items:center;overflow:hidden;position:relative}
+/* (label niet gebruikt) */
+.ticker .lbl{flex:none;height:100%;display:flex;align-items:center;gap:.8vw;padding:0 1.6vw 0 3.5vw;background:var(--yellow);position:relative;z-index:1;font-size:1.5vh;font-weight:700;letter-spacing:.22em;text-transform:uppercase}
+.ticker .lbl::after{content:"";width:2px;height:2.6vh;background:rgba(7,5,4,.25);margin-left:1vw}
+.ticker .run{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}
+.ticker .track{display:flex;white-space:nowrap;will-change:transform;font-size:1.9vh;font-weight:700;letter-spacing:.04em}
+.ticker .track span{padding-right:6vw}
+.ticker .track span{padding:0}
+/* scheiding tussen berichten: één eenvoudige punt */
+.ticker .track i{display:inline-flex;align-items:center;padding:0 .9vw 0 8vw}
+.ticker .track i svg{height:1.1vh;width:auto;fill:#ffffff}   /* wit puntje net voor elk bericht */
+/* megafoon rechts, met de opening naar links: de berichten komen eruit en lopen naar links */
+.ticker .mouth{flex:none;height:100%;display:flex;align-items:center;gap:.8vw;padding:0 3.5vw 0 .4vw;background:var(--yellow);font-size:1.9vh;font-weight:700;letter-spacing:.22em;text-transform:uppercase}
+.ticker .mouth svg{width:3.8vh;height:3.8vh;fill:currentColor}
+.ticker .run{padding-left:3.5vw}
+
+
+/* programma met ticker: iets compacter verticaal zodat alles boven de ticker past */
+.side{padding-top:var(--s4) !important;padding-bottom:var(--s3) !important}
+.prog{padding-top:var(--s4) !important;padding-bottom:var(--s3) !important}
+.title{margin-top:11.4vh}
+.divider{margin:var(--s3) 0 var(--s3) !important}
+.wind{gap:var(--s3) !important}
+.next{margin-top:var(--s3) !important}
+
+/* lichter: zelfde gewichten als het weerbericht (semi-bold), klok en temperatuur iets minder zwaar */
+.time{font-weight:700}
+.date,.title{font-weight:600}
+.hero .temp{font-weight:700}
+.hero .desc{font-weight:600}
+.fact{font-weight:700}
+.fact small{font-weight:600}
+.tile .temp{font-weight:700}
+.chip{font-weight:700}
+.label{font-weight:600}
+/* grid lichter: boten niet meer zwart maar lichtgrijs, lesgevers zonder vlak, cursussen geel; tekst semi-bold */
+.pill{font-weight:600}
+.pill.boot{background:var(--tag);color:var(--fg);letter-spacing:.08em}
+.pill.lesgever{background:none;padding-left:.4vw}
+.pill.cursus{background:var(--yellow);color:var(--fg)}
+
+/* klok bovenaan links; datum staat rechts vóór de titel, met de gele streep ertussen, op de hoogte van de klok */
+.side .date{display:none}
+.title{margin-top:5.3vh !important;gap:1.4vw;align-items:baseline !important;margin-bottom:var(--s5) !important}   /* basislijn van de titel = basislijn van de klok */
+.title i{position:relative;top:0}   /* streep staat op de basislijn van de tekst */
+.title .tdate{white-space:nowrap}
+/* tags: boot donkergrijs, instructeur lichtgrijs, cursus geel — drie duidelijke, lichte vlakken */
+.pill.boot{background:#4f4b47 !important;color:#ffffff !important}
+.pill.lesgever{background:#dedbd4 !important;color:var(--fg) !important;padding-left:1.5vw !important}
+/* lijn onder de klok even dun als de lijn onder de header */
+.divider{height:1px !important;background:var(--line) !important}
+/* meer ademruimte in de linkerkolom */
+.divider{margin:var(--s2) 0 var(--s5) !important}   /* lijn dichter onder de klok */
+.wind{gap:var(--s5) !important}
+.next{margin-top:var(--s4) !important}
+.hero .place{font-size:2.2vh;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.4vh}
+/* uurtegels: meer lucht tussen temperatuur en windtag */
+.tile .chip{margin-top:var(--s1)}
+.tile{padding:var(--s3) 0 !important}
+
+/* ===== gedeeld kader: identiek op alle slides =====
+   kop 3vh boven en onder · inhoud start en eindigt op dezelfde hoogte links en rechts
+   · onderaan overal 4vh witruimte boven de gele balk · bron gecentreerd in die witruimte */
+header{padding:3vh 3.5vw !important}
+.logo{height:4.6vh !important}
+.side{display:flex !important;flex-direction:column;padding-top:var(--s4) !important;padding-bottom:var(--s4) !important}
+.side>.next{margin-top:auto !important}
+.prog{position:relative;padding-top:var(--s4) !important;padding-bottom:var(--s4) !important}
+.prog>.src{position:absolute;right:3.5vw;bottom:calc(var(--s4) / 2);transform:translateY(50%);margin:0 !important}
+
+.wtag{display:flex;align-items:center;justify-content:center;gap:.25vw;width:100%;height:100%;border-radius:1vh;font-size:var(--t-num-s);font-weight:800}
+.wtag svg{width:1.7vh;height:1.7vh;fill:currentColor;flex:none}
+
+/* ===== getij ===== */
+.prog{grid-template-rows:auto auto 1fr auto !important}
+.title{margin-bottom:var(--s4) !important}
+.gtop{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,2.4fr);gap:1vw;margin-bottom:var(--s3)}
+.gnow{background:var(--panel);border-radius:1.6vh;padding:var(--s3) 1.4vw;min-width:0;display:grid;align-content:center;gap:var(--s1)}
+.gnow .k{font-size:var(--t-label);font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.gnow .h{display:flex;align-items:baseline;gap:.6vw}
+.gnow .h b{font-size:6vh;font-weight:800;line-height:1;letter-spacing:-.02em;color:#1f5d9e}
+.gnow .h small{font-size:2vh;font-weight:700;color:var(--muted)}
+.gnow .tr{display:flex;align-items:center;gap:.6vw;font-size:2.2vh;font-weight:700}
+.gnow .tr svg{width:2.4vh;height:2.4vh;fill:currentColor}
+.gnow .nx{font-size:var(--t-text);font-weight:600;color:var(--muted);white-space:nowrap}
+.gnow .nx b{color:var(--fg);font-weight:700}
+.gext{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8vw}
+.gx{background:var(--panel);border-radius:1.6vh;padding:var(--s2) 1vw;min-width:0;display:grid;align-content:center;gap:.6vh}
+.gx .k{display:flex;align-items:center;gap:.4vw;font-size:1.3vh;font-weight:700;letter-spacing:.12em;white-space:nowrap;text-transform:uppercase;color:var(--muted)}
+.gx .k svg{width:1.8vh;height:1.8vh;fill:currentColor}
+.gx .t{font-size:4.6vh;font-weight:800;line-height:1;letter-spacing:-.02em}
+.gx .v{font-size:var(--t-text);font-weight:700;color:#2f6fb3}
+.gx.hw{background:#e3eef8}
+.gx.voorbij{opacity:.35}
+.gx.leeg{background:none}
+.gcurve{min-height:0;position:relative}
+.gcurve svg{width:100%;height:100%;display:block}
+.gcurve text{font-family:var(--font)}
+.gmorgen{display:flex;align-items:center;gap:1.4vw;margin-top:var(--s2);font-size:var(--t-text);font-weight:600;color:var(--muted);flex-wrap:nowrap;white-space:nowrap}
+.gmorgen .k{font-size:var(--t-label);font-weight:700;letter-spacing:.22em;text-transform:uppercase}
+.gmorgen b{color:var(--fg);font-weight:700}
+.gmorgen .tag{display:inline-flex;align-items:center;height:3.2vh;padding:0 .9vw;border-radius:999px;background:var(--yellow);color:var(--fg);font-weight:700;font-size:1.6vh;letter-spacing:.04em}
+.src{font-size:1.3vh;font-weight:600;color:var(--soft)}
+
+</style>
+</head>
+<body>
+<div class="screen">
+  <header>
+    <img class="logo" alt="Vlaamse Vaarschool" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIxMDAgNjYgMTg5MiAyMDIiPjxkZWZzPjxnPjxnIGlkPSJnbHlwaC0wLTAiPjxwYXRoIGQ9Ik0gMTA3LjIxODc1IC05NC4yODEyNSBMIDYzLjI5Njg3NSAtOTQuMjgxMjUgTCA2My4yOTY4NzUgLTc4LjEyNSBMIDczLjE0MDYyNSAtNzguMTI1IEwgNTQuMTQwNjI1IC0yMy44NDM3NSBMIDM1LjI4MTI1IC03OC4xMjUgTCA0NC45ODQzNzUgLTc4LjEyNSBMIDQ0Ljk4NDM3NSAtOTQuMjgxMjUgTCAxLjIxODc1IC05NC4yODEyNSBMIDEuMjE4NzUgLTc4LjEyNSBMIDExLjcxODc1IC03OC4xMjUgTCA0Mi44MjgxMjUgMCBMIDY1LjU5Mzc1IDAgTCA5Ni41NzgxMjUgLTc4LjEyNSBMIDEwNy4yMTg3NSAtNzguMTI1IFogTSAxMDcuMjE4NzUgLTk0LjI4MTI1ICIvPjwvZz48ZyBpZD0iZ2x5cGgtMC0xIj48cGF0aCBkPSJNIDM0LjQ4NDM3NSAtOTYuOTY4NzUgTCA0LjA0Njg3NSAtOTYuOTY4NzUgTCA0LjA0Njg3NSAtODAuODEyNSBMIDEyLjUzMTI1IC04MC44MTI1IEwgMTIuNTMxMjUgLTE2LjE1NjI1IEwgNC43MTg3NSAtMTYuMTU2MjUgTCA0LjcxODc1IDAgTCA0My42NDA2MjUgMCBMIDQzLjY0MDYyNSAtMTYuMTU2MjUgTCAzNC40ODQzNzUgLTE2LjE1NjI1IFogTSAzNC40ODQzNzUgLTk2Ljk2ODc1ICIvPjwvZz48ZyBpZD0iZ2x5cGgtMC0yIj48cGF0aCBkPSJNIDgwLjQwNjI1IC0xNi4xNTYyNSBMIDcyLjMyODEyNSAtMTYuMTU2MjUgTCA3Mi4zMjgxMjUgLTQwLjE0MDYyNSBDIDcyLjMyODEyNSAtNTkuNzk2ODc1IDYzLjI5Njg3NSAtNjguOTUzMTI1IDM3Ljg0Mzc1IC02OC45NTMxMjUgQyAyNS4xODc1IC02OC45NTMxMjUgMTUuODkwNjI1IC02Ny4zNDM3NSAxMC4wOTM3NSAtNjUuMTg3NSBMIDEwLjA5Mzc1IC00NC4xNzE4NzUgTCAyOC40MjE4NzUgLTQ0LjE3MTg3NSBMIDI4LjQyMTg3NSAtNTIuMjY1NjI1IEMgMzEuMjUgLTUyLjUzMTI1IDM0LjM0Mzc1IC01Mi43OTY4NzUgMzcuMTcxODc1IC01Mi43OTY4NzUgQyA0NS42NTYyNSAtNTIuNzk2ODc1IDQ5LjcwMzEyNSAtNDguNzUgNDkuOTY4NzUgLTQwLjgxMjUgTCAzOC45MjE4NzUgLTQwLjgxMjUgQyAxMy42MDkzNzUgLTQwLjgxMjUgNC43MTg3NSAtMzMgNC43MTg3NSAtMTkuNjcxODc1IEMgNC43MTg3NSAtNi41OTM3NSAxMi43OTY4NzUgMS42MDkzNzUgMjkuNSAxLjYwOTM3NSBDIDQwLjU0Njg3NSAxLjYwOTM3NSA0Ny4yODEyNSAtMi4yOTY4NzUgNTEuMzEyNSAtNy42NzE4NzUgTCA1NC4xNDA2MjUgMCBMIDgwLjQwNjI1IDAgWiBNIDM2LjIzNDM3NSAtMTQuNDA2MjUgQyAzMC4yOTY4NzUgLTE0LjQwNjI1IDI3LjIwMzEyNSAtMTYuNTYyNSAyNy4yMDMxMjUgLTIwLjIwMzEyNSBDIDI3LjIwMzEyNSAtMjQuNjQwNjI1IDMwLjk4NDM3NSAtMjYuNzk2ODc1IDM5LjA2MjUgLTI2Ljc5Njg3NSBMIDQ5Ljk2ODc1IC0yNi43OTY4NzUgTCA0OS45Njg3NSAtMjYgQyA0OS45Njg3NSAtMTguNzE4NzUgNDMuMzc1IC0xNC40MDYyNSAzNi4yMzQzNzUgLTE0LjQwNjI1IFogTSAzNi4yMzQzNzUgLTE0LjQwNjI1ICIvPjwvZz48ZyBpZD0iZ2x5cGgtMC0zIj48cGF0aCBkPSJNIDU0LjI4MTI1IDAgTCA5My4wNjI1IDAgTCA5My4wNjI1IC0xNi4xNTYyNSBMIDg0LjU3ODEyNSAtMTYuMTU2MjUgTCA4NC41NzgxMjUgLTM5LjU5Mzc1IEMgODUuOTM3NSAtNDYuMDYyNSA5MS41OTM3NSAtNTAuMzc1IDk4LjQ1MzEyNSAtNTAuMzc1IEMgMTA0LjkyMTg3NSAtNTAuMzc1IDExMC4xNzE4NzUgLTQ3IDExMC4xNzE4NzUgLTM3LjAzMTI1IEwgMTEwLjE3MTg3NSAtMTYuMTU2MjUgTCAxMDEuNjg3NSAtMTYuMTU2MjUgTCAxMDEuNjg3NSAwIEwgMTQwLjQ4NDM3NSAwIEwgMTQwLjQ4NDM3NSAtMTYuMTU2MjUgTCAxMzIgLTE2LjE1NjI1IEwgMTMyIC0zOC4yNSBDIDEzMiAtNTcuNTE1NjI1IDEyMy4xMDkzNzUgLTY4Ljk1MzEyNSAxMDUuMDYyNSAtNjguOTUzMTI1IEMgOTMuNzUgLTY4Ljk1MzEyNSA4Ni40Njg3NSAtNjUuMDQ2ODc1IDgwLjE0MDYyNSAtNTcuNzgxMjUgQyA3NS42ODc1IC02NS4wNDY4NzUgNjguMDE1NjI1IC02OC45NTMxMjUgNTcuNTE1NjI1IC02OC45NTMxMjUgQyA0OC43NSAtNjguOTUzMTI1IDM5Ljg3NSAtNjUuMDQ2ODc1IDM1LjgyODEyNSAtNTguNDUzMTI1IEwgMzIuNzM0Mzc1IC02Ny4zNDM3NSBMIDYuNTkzNzUgLTY3LjM0Mzc1IEwgNi41OTM3NSAtNTEuMTg3NSBMIDE1LjA3ODEyNSAtNTEuMTg3NSBMIDE1LjA3ODEyNSAtMTYuMTU2MjUgTCA2LjU5Mzc1IC0xNi4xNTYyNSBMIDYuNTkzNzUgMCBMIDQ1LjM5MDYyNSAwIEwgNDUuMzkwNjI1IC0xNi4xNTYyNSBMIDM2LjkwNjI1IC0xNi4xNTYyNSBMIDM2LjkwNjI1IC0zNi42NDA2MjUgQyAzNi45MDYyNSAtNDQuNTc4MTI1IDQyLjgyODEyNSAtNTAuMzc1IDUwLjc4MTI1IC01MC4zNzUgQyA1Ny4zNzUgLTUwLjM3NSA2Mi43NjU2MjUgLTQ2LjczNDM3NSA2Mi43NjU2MjUgLTM3LjAzMTI1IEwgNjIuNzY1NjI1IC0xNi4xNTYyNSBMIDU0LjI4MTI1IC0xNi4xNTYyNSBaIE0gNTQuMjgxMjUgMCAiLz48L2c+PGcgaWQ9ImdseXBoLTAtNCI+PHBhdGggZD0iTSA2LjMyODEyNSAtMjIuNjI1IEwgNi4zMjgxMjUgLTIuMTU2MjUgQyAxMS41NzgxMjUgMCAyMi41IDEuNjA5Mzc1IDM0LjA3ODEyNSAxLjYwOTM3NSBDIDUxLjg1OTM3NSAxLjYwOTM3NSA3MS4zOTA2MjUgLTIuMTU2MjUgNzEuMzkwNjI1IC0yMi4wOTM3NSBDIDcxLjM5MDYyNSAtNDguNDg0Mzc1IDI4LjY4NzUgLTQwLjE0MDYyNSAyOC42ODc1IC00OS4yOTY4NzUgQyAyOC42ODc1IC01My4wNjI1IDM1LjQyMTg3NSAtNTMuODc1IDQxLjIxODc1IC01My44NzUgQyA0NS4yNSAtNTMuODc1IDQ4Ljg5MDYyNSAtNTMuNjA5Mzc1IDUyLjI2NTYyNSAtNTIuOTM3NSBMIDUyLjI2NTYyNSAtNDQuNDUzMTI1IEwgNjkuNjQwNjI1IC00NC40NTMxMjUgTCA2OS42NDA2MjUgLTYzLjcwMzEyNSBMIDY5LjUgLTYzLjU3ODEyNSBMIDY5LjUgLTYzLjcwMzEyNSBDIDYzLjQzNzUgLTY2LjY3MTg3NSA1My44NzUgLTY4Ljk1MzEyNSA0MS44OTA2MjUgLTY4Ljk1MzEyNSBDIDIxLjgxMjUgLTY4Ljk1MzEyNSA2LjMyODEyNSAtNjIuNjI1IDYuMzI4MTI1IC00NS45MjE4NzUgQyA2LjMyODEyNSAtMjAuODc1IDQ5LjI5Njg3NSAtMjguMTU2MjUgNDkuMjk2ODc1IC0xOS4xMjUgQyA0OS4yOTY4NzUgLTE0Ljk1MzEyNSA0Mi4yOTY4NzUgLTEzLjQ2ODc1IDM0LjIwMzEyNSAtMTMuNDY4NzUgQyAzMC41NzgxMjUgLTEzLjQ2ODc1IDI3LjA3ODEyNSAtMTMuNjA5Mzc1IDIzLjcwMzEyNSAtMTQgTCAyMy43MDMxMjUgLTIyLjYyNSBaIE0gNi4zMjgxMjUgLTIyLjYyNSAiLz48L2c+PGcgaWQ9ImdseXBoLTAtNSI+PHBhdGggZD0iTSA0Ljg0Mzc1IC0zMy45Mzc1IEMgNC44NDM3NSAtMTAuNSAyMC44NzUgMS42MDkzNzUgNDUuMzkwNjI1IDEuNjA5Mzc1IEMgNTkuMjY1NjI1IDEuNjA5Mzc1IDcwLjg0Mzc1IC0yLjI5Njg3NSA3Ny44NDM3NSAtOC40ODQzNzUgTCA2Ny40ODQzNzUgLTIwLjYwOTM3NSBDIDYzLjI5Njg3NSAtMTcuNjQwNjI1IDU2Ljg0Mzc1IC0xNS4zNTkzNzUgNDcuNDA2MjUgLTE1LjM1OTM3NSBDIDM1LjQyMTg3NSAtMTUuMzU5Mzc1IDI4LjgyODEyNSAtMjEuMDE1NjI1IDI3LjM0Mzc1IC0yOS45MDYyNSBMIDc4LjY1NjI1IC0yOS45MDYyNSBMIDc4LjY1NjI1IC0zNi42NDA2MjUgQyA3OC42NTYyNSAtNTYuNTYyNSA2NS44NTkzNzUgLTY4Ljk1MzEyNSA0Mi40MjE4NzUgLTY4Ljk1MzEyNSBDIDE4LjQ1MzEyNSAtNjguOTUzMTI1IDQuODQzNzUgLTU1LjQ4NDM3NSA0Ljg0Mzc1IC0zMy45Mzc1IFogTSA0Mi40MjE4NzUgLTUzLjg3NSBDIDQ5Ljk2ODc1IC01My44NzUgNTQuODEyNSAtNTAuOTA2MjUgNTYuNzAzMTI1IC00My45MDYyNSBMIDI4LjI4MTI1IC00My45MDYyNSBDIDMwLjQzNzUgLTUwLjc4MTI1IDM1LjQyMTg3NSAtNTMuODc1IDQyLjQyMTg3NSAtNTMuODc1IFogTSA0Mi40MjE4NzUgLTUzLjg3NSAiLz48L2c+PGcgaWQ9ImdseXBoLTAtNiI+PC9nPjxnIGlkPSJnbHlwaC0wLTciPjxwYXRoIGQ9Ik0gNDguNDg0Mzc1IC0xNi4xNTYyNSBMIDM3LjAzMTI1IC0xNi4xNTYyNSBMIDM3LjAzMTI1IC0yMS4wMTU2MjUgQyAzNy4wMzEyNSAtNDMuNSA0Mi45Njg3NSAtNDkuODI4MTI1IDUyLjUzMTI1IC00OS44MjgxMjUgQyA1NS40ODQzNzUgLTQ5LjgyODEyNSA1Ny45MjE4NzUgLTQ5LjcwMzEyNSA2Mi4wOTM3NSAtNDguODkwNjI1IEwgNjUuNzM0Mzc1IC02Ny4yMDMxMjUgQyA2Mi4zNTkzNzUgLTY4LjQyMTg3NSA1OC41OTM3NSAtNjguOTUzMTI1IDU1LjM1OTM3NSAtNjguOTUzMTI1IEMgNDYuODc1IC02OC45NTMxMjUgNDAuMjY1NjI1IC02NC4yNSAzNy4wMzEyNSAtNTYuNTYyNSBMIDMyLjg1OTM3NSAtNjcuMzQzNzUgTCA2LjU5Mzc1IC02Ny4zNDM3NSBMIDYuNTkzNzUgLTUxLjE4NzUgTCAxNS4wNzgxMjUgLTUxLjE4NzUgTCAxNS4wNzgxMjUgLTE2LjE1NjI1IEwgNi41OTM3NSAtMTYuMTU2MjUgTCA2LjU5Mzc1IDAgTCA0OC40ODQzNzUgMCBaIE0gNDguNDg0Mzc1IC0xNi4xNTYyNSAiLz48L2c+PGcgaWQ9ImdseXBoLTAtOCI+PHBhdGggZD0iTSAyOC4wMTU2MjUgLTMzLjkzNzUgQyAyOC4wMTU2MjUgLTQ0LjcxODc1IDM0LjM0Mzc1IC01MS4xODc1IDQ0LjcxODc1IC01MS4xODc1IEMgNDYuODc1IC01MS4xODc1IDQ5LjAzMTI1IC01MC43ODEyNSA1MS4wNDY4NzUgLTUwLjEwOTM3NSBMIDUxLjA0Njg3NSAtMzkuMTg3NSBMIDcwLjg0Mzc1IC0zOS4xODc1IEwgNzAuODQzNzUgLTYxLjgyODEyNSBDIDY1LjA0Njg3NSAtNjYgNTYuODQzNzUgLTY4Ljk1MzEyNSA0My4wOTM3NSAtNjguOTUzMTI1IEMgMjEuMjgxMjUgLTY4Ljk1MzEyNSA0Ljg0Mzc1IC01Ny4zNzUgNC44NDM3NSAtMzMuOTM3NSBDIDQuODQzNzUgLTEwLjUgMjEuNDIxODc1IDEuNjA5Mzc1IDQ0LjcxODc1IDEuNjA5Mzc1IEMgNTguMDQ2ODc1IDEuNjA5Mzc1IDY4LjI4MTI1IC0xLjQ4NDM3NSA3NS42ODc1IC04LjA3ODEyNSBMIDY0LjY1NjI1IC0yMS42ODc1IEMgNjAuNzUgLTE3LjkwNjI1IDUzLjM0Mzc1IC0xNi4xNTYyNSA0Ny41NDY4NzUgLTE2LjE1NjI1IEMgMzUuNDIxODc1IC0xNi4xNTYyNSAyOC4wMTU2MjUgLTIzLjAzMTI1IDI4LjAxNTYyNSAtMzMuOTM3NSBaIE0gMjguMDE1NjI1IC0zMy45Mzc1ICIvPjwvZz48ZyBpZD0iZ2x5cGgtMC05Ij48cGF0aCBkPSJNIDkxLjg1OTM3NSAtMTYuMTU2MjUgTCA4My4zNzUgLTE2LjE1NjI1IEwgODMuMzc1IC0zNy41NzgxMjUgQyA4My4zNzUgLTU3LjEwOTM3NSA3NC42MDkzNzUgLTY4Ljk1MzEyNSA1Ni4wMzEyNSAtNjguOTUzMTI1IEMgNDcuMjgxMjUgLTY4Ljk1MzEyNSAzOS4zMjgxMjUgLTY1LjQ1MzEyNSAzNC44OTA2MjUgLTU5LjY3MTg3NSBMIDM0Ljg5MDYyNSAtOTYuOTY4NzUgTCA0LjQzNzUgLTk2Ljk2ODc1IEwgNC40Mzc1IC04MC44MTI1IEwgMTIuOTM3NSAtODAuODEyNSBMIDEyLjkzNzUgLTY3LjM0Mzc1IEwgMTIuNzk2ODc1IC02Ny4zNDM3NSBMIDEyLjc5Njg3NSAtMTYuMTU2MjUgTCA0LjQzNzUgLTE2LjE1NjI1IEwgNC40Mzc1IDAgTCA0My4zNzUgMCBMIDQzLjM3NSAtMTYuMTU2MjUgTCAzNC43NSAtMTYuMTU2MjUgTCAzNC43NSAtMzUuODI4MTI1IEMgMzQuNzUgLTQ1LjY1NjI1IDQxLjIxODc1IC00OS45Njg3NSA0OS4yOTY4NzUgLTQ5Ljk2ODc1IEMgNTYuNzAzMTI1IC00OS45Njg3NSA2MS40MjE4NzUgLTQ1LjkyMTg3NSA2MS40MjE4NzUgLTM2LjUgTCA2MS40MjE4NzUgMCBMIDkxLjg1OTM3NSAwIFogTSA5MS44NTkzNzUgLTE2LjE1NjI1ICIvPjwvZz48ZyBpZD0iZ2x5cGgtMC0xMCI+PHBhdGggZD0iTSA0LjcxODc1IC0zMy45Mzc1IEMgNC43MTg3NSAtMTMuNzM0Mzc1IDIwLjIwMzEyNSAxLjYwOTM3NSA0NC4wNDY4NzUgMS42MDkzNzUgQyA2Ny42MDkzNzUgMS42MDkzNzUgODIuOTY4NzUgLTEzLjczNDM3NSA4Mi45Njg3NSAtMzMuOTM3NSBDIDgyLjk2ODc1IC01NC4yODEyNSA2Ny42MDkzNzUgLTY4Ljk1MzEyNSA0NC4wNDY4NzUgLTY4Ljk1MzEyNSBDIDIwLjIwMzEyNSAtNjguOTUzMTI1IDQuNzE4NzUgLTU0LjI4MTI1IDQuNzE4NzUgLTMzLjkzNzUgWiBNIDU5Ljc5Njg3NSAtMzQuMDc4MTI1IEMgNTkuNzk2ODc1IC0yNC43ODEyNSA1NC4wMTU2MjUgLTE3LjIzNDM3NSA0NC4wNDY4NzUgLTE3LjIzNDM3NSBDIDMzLjQwNjI1IC0xNy4yMzQzNzUgMjcuODc1IC0yNC45MjE4NzUgMjcuODc1IC0zMy45Mzc1IEMgMjcuODc1IC00Mi44MjgxMjUgMzMuNTMxMjUgLTUwLjEwOTM3NSA0NC4wNDY4NzUgLTUwLjEwOTM3NSBDIDU0LjE0MDYyNSAtNTAuMTA5Mzc1IDU5Ljc5Njg3NSAtNDIuOTY4NzUgNTkuNzk2ODc1IC0zNC4wNzgxMjUgWiBNIDU5Ljc5Njg3NSAtMzQuMDc4MTI1ICIvPjwvZz48L2c+PGNsaXBQYXRoIGlkPSJjbGlwLTAiPjxwYXRoIGNsaXAtcnVsZT0ibm9uemVybyIgZD0iTSA5MC40MTQwNjIgNzMuMzcxMDk0IEwgMzQxIDczLjM3MTA5NCBMIDM0MSAyNjEuNzkyOTY5IEwgOTAuNDE0MDYyIDI2MS43OTI5NjkgWiBNIDkwLjQxNDA2MiA3My4zNzEwOTQgIi8+PC9jbGlwUGF0aD48Y2xpcFBhdGggaWQ9ImNsaXAtMSI+PHBhdGggY2xpcC1ydWxlPSJub256ZXJvIiBkPSJNIDEwNCA3My4zNzEwOTQgTCA0MzkgNzMuMzcxMDk0IEwgNDM5IDI2MS43OTI5NjkgTCAxMDQgMjYxLjc5Mjk2OSBaIE0gMTA0IDczLjM3MTA5NCAiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iY2xpcC0yIj48cGF0aCBjbGlwLXJ1bGU9Im5vbnplcm8iIGQ9Ik0gMjAxIDczLjM3MTA5NCBMIDQ0OS4zMDg1OTQgNzMuMzcxMDk0IEwgNDQ5LjMwODU5NCAyNjEuNzkyOTY5IEwgMjAxIDI2MS43OTI5NjkgWiBNIDIwMSA3My4zNzEwOTQgIi8+PC9jbGlwUGF0aD48L2RlZnM+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAtMCkiPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iNDEuOTM2IiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlPSIjRjhFNzAwIiBzdHJva2Utb3BhY2l0eT0iMSIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIGQ9Ik0gMjIxLjAyNTY0NSAyODguMzU3NjE2IEwgMTIzLjE2NTI1IDcwLjU0MjQ3NSAiIHRyYW5zZm9ybT0ibWF0cml4KDAuOTk3Njc0LCAwLCAwLCAtMC45OTc2NzQsIDEuOTY4ODM3LCAzNDIuNDAxODYpIi8+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwLTEpIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjQxLjkzNiIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZT0iI0Y4RTcwMCIgc3Ryb2tlLW9wYWNpdHk9IjEiIHN0cm9rZS1taXRlcmxpbWl0PSIyIiBkPSJNIDMxOC44OTM4NyAyODguMzU3NjE2IEwgMjIxLjAyNTY0NSA3MC41NDI0NzUgIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjk5NzY3NCwgMCwgMCwgLTAuOTk3Njc0LCAxLjk2ODgzNywgMzQyLjQwMTg2KSIvPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcC0yKSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSI0MS45MzYiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2U9IiNGOEU3MDAiIHN0cm9rZS1vcGFjaXR5PSIxIiBzdHJva2UtbWl0ZXJsaW1pdD0iMiIgZD0iTSA0MTYuNzU4MTggMjc3LjYwMjEzNCBMIDMxOC44OTM4NyA1OS43OTA5MDkgIiB0cmFuc2Zvcm09Im1hdHJpeCgwLjk5NzY3NCwgMCwgMCwgLTAuOTk3Njc0LCAxLjk2ODgzNywgMzQyLjQwMTg2KSIvPjwvZz48ZyBmaWxsPSIjMDcwNTA0IiBmaWxsLW9wYWNpdHk9IjEiPjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtMCIgeD0iNTE2LjU5MzI0NyIgeT0iMjE0LjI0NTU5MyIvPjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtMSIgeD0iNjI1LjE1MDIiIHk9IjIxNC4yNDU1OTMiLz48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTIiIHg9IjY3Mi45NjM3NDciIHk9IjIxNC4yNDU1OTMiLz48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTIiIHg9Ijc1Ny40MTE4OTgiIHk9IjIxNC4yNDU1OTMiLz48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTMiIHg9Ijg0MS44NjAwNDkiIHk9IjIxNC4yNDU1OTMiLz48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTQiIHg9Ijk4Ni4zNzgxNzciIHk9IjIxNC4yNDU1OTMiLz48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTUiIHg9IjEwNjMuMjgzOTA5IiB5PSIyMTQuMjQ1NTkzIi8+PHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC02IiB4PSIxMTQ2LjY1NDU3MiIgeT0iMjE0LjI0NTU5MyIvPjwvZz48ZyBmaWxsPSIjMDcwNTA0IiBmaWxsLW9wYWNpdHk9IjEiPjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtMCIgeD0iMTE3Ny4yMjgzMDUiIHk9IjIxNC4yNDU1OTMiLz48L2c+PGcgZmlsbD0iIzA3MDUwNCIgZmlsbC1vcGFjaXR5PSIxIj48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTIiIHg9IjEyNzYuMDg3ODYzIiB5PSIyMTQuMjQ1NTkzIi8+PHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSIxMzYwLjUzNjAxNCIgeT0iMjE0LjI0NTU5MyIvPjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtNyIgeD0iMTQ0NC45ODQxNjUiIHk9IjIxNC4yNDU1OTMiLz48L2c+PGcgZmlsbD0iIzA3MDUwNCIgZmlsbC1vcGFjaXR5PSIxIj48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTQiIHg9IjE1MTAuMTcyMjEyIiB5PSIyMTQuMjQ1NTkzIi8+PHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC04IiB4PSIxNTg3LjA3Nzk0NCIgeT0iMjE0LjI0NTU5MyIvPjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtOSIgeD0iMTY2NS41OTk5MDkiIHk9IjIxNC4yNDU1OTMiLz48dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTEwIiB4PSIxNzYxLjQ5NjM3NCIgeT0iMjE0LjI0NTU5MyIvPjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtMTAiIHg9IjE4NDkuMTc2OTkxIiB5PSIyMTQuMjQ1NTkzIi8+PHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0xIiB4PSIxOTM2Ljg1NzYwNyIgeT0iMjE0LjI0NTU5MyIvPjwvZz48L3N2Zz4K">
+    <div class="day">Getij</div>
+  </header>
+
+  <main>
+    <aside class="side">
+      <div class="clockrow"><div class="time" id="time">--:--</div></div>
+      <div class="date"><i></i><span id="date">—</span></div>
+
+      <div class="divider"></div>
+
+      <section class="section">
+        <div class="wind">
+          <div class="hero">
+            <svg class="wxbig" id="nowicon" viewBox="4 5 61 53"></svg>
+            <div class="txt"><div class="place">Nieuwpoort</div><div class="temp" id="nowtemp">--°</div><div class="desc" id="nowdesc"></div></div>
+          </div>
+          <div class="facts">
+            <div class="fact bigchip" id="wchip"></div>
+            <div class="fact wave"><svg class="wv" viewBox="0 0 24 24"><path d="M2 9.5c2.2 0 2.2-2 4.4-2s2.2 2 4.4 2 2.2-2 4.4-2 2.2 2 4.4 2"/><path d="M2 15.5c2.2 0 2.2-2 4.4-2s2.2 2 4.4 2 2.2-2 4.4-2 2.2 2 4.4 2"/></svg><span class="v" id="wave">--</span><small>m</small></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section next" id="next"></section>
+    </aside>
+
+    <section class="prog">
+      <div class="title"><span class="tdate" id="tdate"></span><i></i><h2>Getij Nieuwpoort</h2></div>
+      <div class="gtop">
+        <div class="gnow" id="gnow"></div>
+        <div class="gext" id="gext"></div>
+      </div>
+      <div class="gcurve"><svg id="gsvg" preserveAspectRatio="none"></svg></div>
+      <div class="gmorgen" id="gmorgen"></div>
+      <div class="src">Bron: Getijtafels 2026 · MDK – Vlaamse Hydrografie · astronomisch getij, zonder windopzet · hoogtes in m TAW</div>
+    </section>
+  </main>
+  <div class="ticker"><div class="run"><div class="track" id="track"></div></div><div class="mouth" id="mouth"></div></div>
+</div>
+
+<script>
+
+const LAT=51.17, LON=2.72;
+const $=id=>document.getElementById(id);
+/* Beaufort uit knopen */
+const BFT_GRENS=[1,4,7,11,17,22,28,34,41,48,56,64];
+const bft=kn=>{let b=0;while(b<12&&kn>=BFT_GRENS[b])b++;return b;};
+const pad2=v=>String(v).padStart(2,"0");
+const kom=v=>String(v).replace(".",",");
+/* waarde van één model uit een open-meteo antwoord met meerdere modellen */
+const reeks=(h,naam,model)=>h[naam+"_"+model]||(model?null:h[naam])||null;
+const okReeks=r=>Array.isArray(r)&&r.some(v=>v!=null);
+/* gemiddelde windrichting (vector) */
+function richting(dirs,spd){let x=0,y=0;dirs.forEach((d,i)=>{if(d==null)return;const w=spd&&spd[i]||1;x+=Math.sin(d*Math.PI/180)*w;y+=Math.cos(d*Math.PI/180)*w;});return (Math.atan2(x,y)*180/Math.PI+360)%360;}
+const windTag=(kn,dir,extra="")=>{const c=windFill(kn);return `<span class="wtag" style="background:${rgb(c)};color:${ink(c)}">${dir==null?"":arrow(dir)}<b>${Math.round(kn)}</b>${extra}</span>`;};
+
+/* ---------- getij ----------
+   Hoog- en laagwaters Nieuwpoort uit de officiële Getijtafels 2026 (MDK – Vlaamse Hydrografie), m TAW, lokale tijd.
+   Elk jaar vervangen door de nieuwe tafels (Claude kan dat: "werk de getijtafels bij voor 2027").
+   Tussen hoog- en laagwater volgt de curve een cosinus: een goede benadering van het verloop. */
+const GETIJ=[["2026-10-01T04:25","H",4.93],["2026-10-01T11:17","L",0.19],["2026-10-01T16:43","H",5.0],["2026-10-01T23:44","L",0.2],["2026-10-02T05:08","H",4.63],["2026-10-02T11:59","L",0.42],["2026-10-02T17:30","H",4.71],["2026-10-03T00:30","L",0.52],["2026-10-03T05:58","H",4.27],["2026-10-03T12:51","L",0.67],["2026-10-03T18:29","H",4.34],["2026-10-04T01:30","L",0.85],["2026-10-04T07:13","H",3.89],["2026-10-04T14:04","L",0.87],["2026-10-04T19:59","H",4.02],["2026-10-05T02:44","L",1.05],["2026-10-05T08:46","H",3.72],["2026-10-05T15:25","L",0.89],["2026-10-05T21:29","H",3.98],["2026-10-06T04:03","L",1.08],["2026-10-06T10:10","H",3.84],["2026-10-06T16:53","L",0.7],["2026-10-06T22:53","H",4.23],["2026-10-07T05:37","L",0.88],["2026-10-07T11:19","H",4.17],["2026-10-07T18:09","L",0.35],["2026-10-07T23:54","H",4.56],["2026-10-08T06:38","L",0.58],["2026-10-08T12:09","H",4.52],["2026-10-08T19:00","L",0.02],["2026-10-09T00:38","H",4.83],["2026-10-09T07:21","L",0.34],["2026-10-09T12:49","H",4.8],["2026-10-09T19:42","L",-0.18],["2026-10-10T01:15","H",4.99],["2026-10-10T07:59","L",0.18],["2026-10-10T13:26","H",5.0],["2026-10-10T20:20","L",-0.28],["2026-10-11T01:51","H",5.07],["2026-10-11T08:36","L",0.07],["2026-10-11T14:03","H",5.12],["2026-10-11T20:58","L",-0.28],["2026-10-12T02:29","H",5.08],["2026-10-12T09:13","L",0.02],["2026-10-12T14:42","H",5.14],["2026-10-12T21:35","L",-0.2],["2026-10-13T03:08","H",5.0],["2026-10-13T09:49","L",0.04],["2026-10-13T15:21","H",5.06],["2026-10-13T22:12","L",-0.03],["2026-10-14T03:46","H",4.84],["2026-10-14T10:24","L",0.15],["2026-10-14T15:59","H",4.87],["2026-10-14T22:46","L",0.23],["2026-10-15T04:22","H",4.61],["2026-10-15T10:56","L",0.34],["2026-10-15T16:34","H",4.63],["2026-10-15T23:16","L",0.53],["2026-10-16T04:54","H",4.34],["2026-10-16T11:24","L",0.57],["2026-10-16T17:07","H",4.35],["2026-10-16T23:41","L",0.83],["2026-10-17T05:23","H",4.08],["2026-10-17T11:52","L",0.82],["2026-10-17T17:42","H",4.07],["2026-10-18T00:10","L",1.1],["2026-10-18T05:57","H",3.81],["2026-10-18T12:32","L",1.08],["2026-10-18T18:33","H",3.77],["2026-10-19T01:09","L",1.37],["2026-10-19T07:12","H",3.53],["2026-10-19T14:26","L",1.25],["2026-10-19T20:09","H",3.56],["2026-10-20T02:53","L",1.45],["2026-10-20T08:51","H",3.45],["2026-10-20T15:37","L",1.18],["2026-10-20T21:30","H",3.63],["2026-10-21T04:00","L",1.33],["2026-10-21T10:04","H",3.63],["2026-10-21T16:42","L",0.97],["2026-10-21T22:38","H",3.93],["2026-10-22T05:05","L",1.09],["2026-10-22T11:01","H",3.97],["2026-10-22T17:46","L",0.65],["2026-10-22T23:30","H",4.32],["2026-10-23T06:07","L",0.77],["2026-10-23T11:46","H",4.36],["2026-10-23T18:36","L",0.33],["2026-10-24T00:11","H",4.69],["2026-10-24T06:53","L",0.46],["2026-10-24T12:25","H",4.72],["2026-10-24T19:17","L",0.05],["2026-10-25T00:49","H",4.98],["2026-10-25T06:34","L",0.2],["2026-10-25T12:02","H",5.01],["2026-10-25T18:58","L",-0.16],["2026-10-26T00:26","H",5.16],["2026-10-26T07:15","L",0.02],["2026-10-26T12:40","H",5.2],["2026-10-26T19:38","L",-0.26],["2026-10-27T01:04","H",5.22],["2026-10-27T07:56","L",-0.07],["2026-10-27T13:20","H",5.28],["2026-10-27T20:19","L",-0.25],["2026-10-28T01:44","H",5.16],["2026-10-28T08:38","L",-0.06],["2026-10-28T14:01","H",5.24],["2026-10-28T21:01","L",-0.12],["2026-10-29T02:25","H",5.0],["2026-10-29T09:20","L",0.04],["2026-10-29T14:44","H",5.1],["2026-10-29T21:44","L",0.1],["2026-10-30T03:08","H",4.77],["2026-10-30T10:03","L",0.2],["2026-10-30T15:29","H",4.89],["2026-10-30T22:28","L",0.37],["2026-10-31T03:54","H",4.5],["2026-10-31T10:50","L",0.39],["2026-10-31T16:21","H",4.62],["2026-10-31T23:18","L",0.65],["2026-11-01T04:50","H",4.21],["2026-11-01T11:47","L",0.56],["2026-11-01T17:28","H",4.33],["2026-11-02T00:18","L",0.89],["2026-11-02T06:08","H",3.98],["2026-11-02T12:55","L",0.67],["2026-11-02T18:51","H",4.15],["2026-11-03T01:26","L",1.03],["2026-11-03T07:27","H",3.9],["2026-11-03T14:05","L",0.66],["2026-11-03T20:10","H",4.14],["2026-11-04T02:38","L",1.04],["2026-11-04T08:42","H",4.01],["2026-11-04T15:23","L",0.55],["2026-11-04T21:26","H",4.31],["2026-11-05T04:10","L",0.89],["2026-11-05T09:49","H",4.26],["2026-11-05T16:41","L",0.3],["2026-11-05T22:29","H",4.55],["2026-11-06T05:15","L",0.62],["2026-11-06T10:43","H",4.53],["2026-11-06T17:35","L",0.08],["2026-11-06T23:18","H",4.74],["2026-11-07T06:00","L",0.4],["2026-11-07T11:29","H",4.74],["2026-11-07T18:20","L",-0.05],["2026-11-08T00:00","H",4.85],["2026-11-08T06:40","L",0.26],["2026-11-08T12:09","H",4.87],["2026-11-08T19:00","L",-0.06],["2026-11-09T00:39","H",4.88],["2026-11-09T07:18","L",0.18],["2026-11-09T12:49","H",4.92],["2026-11-09T19:38","L",0.01],["2026-11-10T01:17","H",4.85],["2026-11-10T07:55","L",0.16],["2026-11-10T13:28","H",4.89],["2026-11-10T20:14","L",0.14],["2026-11-11T01:55","H",4.76],["2026-11-11T08:30","L",0.2],["2026-11-11T14:06","H",4.8],["2026-11-11T20:49","L",0.31],["2026-11-12T02:31","H",4.62],["2026-11-12T09:04","L",0.3],["2026-11-12T14:42","H",4.65],["2026-11-12T21:19","L",0.51],["2026-11-13T03:03","H",4.45],["2026-11-13T09:34","L",0.43],["2026-11-13T15:15","H",4.47],["2026-11-13T21:44","L",0.7],["2026-11-14T03:31","H",4.28],["2026-11-14T10:02","L",0.57],["2026-11-14T15:45","H",4.32],["2026-11-14T22:10","L",0.85],["2026-11-15T03:58","H",4.14],["2026-11-15T10:33","L",0.72],["2026-11-15T16:20","H",4.17],["2026-11-15T22:43","L",1.0],["2026-11-16T04:33","H",4.01],["2026-11-16T11:18","L",0.87],["2026-11-16T17:06","H",4.01],["2026-11-16T23:33","L",1.16],["2026-11-17T05:27","H",3.84],["2026-11-17T12:41","L",0.97],["2026-11-17T18:19","H",3.88],["2026-11-18T01:02","L",1.24],["2026-11-18T06:55","H",3.75],["2026-11-18T13:50","L",0.94],["2026-11-18T19:38","H",3.89],["2026-11-19T02:11","L",1.17],["2026-11-19T08:07","H",3.83],["2026-11-19T14:50","L",0.8],["2026-11-19T20:43","H",4.06],["2026-11-20T03:13","L",1.01],["2026-11-20T09:07","H",4.05],["2026-11-20T15:50","L",0.59],["2026-11-20T21:41","H",4.33],["2026-11-21T04:16","L",0.78],["2026-11-21T10:00","H",4.35],["2026-11-21T16:49","L",0.36],["2026-11-21T22:31","H",4.6],["2026-11-22T05:15","L",0.53],["2026-11-22T10:48","H",4.64],["2026-11-22T17:42","L",0.14],["2026-11-22T23:17","H",4.81],["2026-11-23T06:06","L",0.3],["2026-11-23T11:34","H",4.87],["2026-11-23T18:30","L",0.01],["2026-11-23T23:59","H",4.94],["2026-11-24T06:53","L",0.13],["2026-11-24T12:18","H",5.03],["2026-11-24T19:16","L",-0.07],["2026-11-25T00:45","H",4.97],["2026-11-25T07:38","L",0.04],["2026-11-25T13:02","H",5.09],["2026-11-25T20:00","L",-0.04],["2026-11-26T01:28","H",4.92],["2026-11-26T08:23","L",0.02],["2026-11-26T13:47","H",5.07],["2026-11-26T20:45","L",0.07],["2026-11-27T02:12","H",4.82],["2026-11-27T09:08","L",0.04],["2026-11-27T14:33","H",4.99],["2026-11-27T21:30","L",0.23],["2026-11-28T02:58","H",4.68],["2026-11-28T09:55","L",0.1],["2026-11-28T15:22","H",4.86],["2026-11-28T22:17","L",0.4],["2026-11-29T03:47","H",4.53],["2026-11-29T10:45","L",0.18],["2026-11-29T16:17","H",4.69],["2026-11-29T23:07","L",0.58],["2026-11-30T04:44","H",4.38],["2026-11-30T11:39","L",0.26],["2026-11-30T17:21","H",4.51],["2026-11-30T23:59","L",0.74],["2026-12-01T05:50","H",4.25],["2026-12-01T12:36","L",0.33],["2026-12-01T18:31","H",4.37],["2026-12-02T01:00","L",0.86],["2026-12-02T06:59","H",4.18],["2026-12-02T13:37","L",0.4],["2026-12-02T19:40","H",4.29],["2026-12-03T02:03","L",0.93],["2026-12-03T08:05","H",4.17],["2026-12-03T14:45","L",0.44],["2026-12-03T20:48","H",4.29],["2026-12-04T03:23","L",0.91],["2026-12-04T09:11","H",4.25],["2026-12-04T16:04","L",0.4],["2026-12-04T21:56","H",4.37],["2026-12-05T04:45","L",0.75],["2026-12-05T10:15","H",4.37],["2026-12-05T17:09","L",0.3],["2026-12-05T22:56","H",4.48],["2026-12-06T05:39","L",0.56],["2026-12-06T11:12","H",4.51],["2026-12-06T18:00","L",0.24],["2026-12-06T23:47","H",4.56],["2026-12-07T06:25","L",0.41],["2026-12-07T12:01","H",4.6],["2026-12-07T18:44","L",0.26],["2026-12-08T00:31","H",4.6],["2026-12-08T07:07","L",0.34],["2026-12-08T12:43","H",4.64],["2026-12-08T19:24","L",0.33],["2026-12-09T01:10","H",4.59],["2026-12-09T07:45","L",0.32],["2026-12-09T13:22","H",4.62],["2026-12-09T20:00","L",0.45],["2026-12-10T01:46","H",4.54],["2026-12-10T08:21","L",0.34],["2026-12-10T13:58","H",4.57],["2026-12-10T20:32","L",0.56],["2026-12-11T02:19","H",4.46],["2026-12-11T08:53","L",0.38],["2026-12-11T14:30","H",4.5],["2026-12-11T20:59","L",0.66],["2026-12-12T02:48","H",4.39],["2026-12-12T09:23","L",0.42],["2026-12-12T15:00","H",4.44],["2026-12-12T21:24","L",0.71],["2026-12-13T03:14","H",4.34],["2026-12-13T09:53","L",0.46],["2026-12-13T15:30","H",4.41],["2026-12-13T21:54","L",0.73],["2026-12-14T03:41","H",4.32],["2026-12-14T10:27","L",0.49],["2026-12-14T16:03","H",4.39],["2026-12-14T22:31","L",0.77],["2026-12-15T04:16","H",4.3],["2026-12-15T11:10","L",0.54],["2026-12-15T16:44","H",4.36],["2026-12-15T23:17","L",0.83],["2026-12-16T05:00","H",4.25],["2026-12-16T12:03","L",0.59],["2026-12-16T17:35","H",4.28],["2026-12-17T00:15","L",0.91],["2026-12-17T05:58","H",4.16],["2026-12-17T13:02","L",0.63],["2026-12-17T18:43","H",4.2],["2026-12-18T01:21","L",0.95],["2026-12-18T07:10","H",4.11],["2026-12-18T14:03","L",0.62],["2026-12-18T19:51","H",4.19],["2026-12-19T02:26","L",0.93],["2026-12-19T08:17","H",4.14],["2026-12-19T15:04","L",0.57],["2026-12-19T20:54","H",4.25],["2026-12-20T03:32","L",0.84],["2026-12-20T09:18","H",4.25],["2026-12-20T16:07","L",0.48],["2026-12-20T21:54","H",4.35],["2026-12-21T04:39","L",0.69],["2026-12-21T10:16","H",4.41],["2026-12-21T17:10","L",0.36],["2026-12-21T22:51","H",4.47],["2026-12-22T05:42","L",0.49],["2026-12-22T11:11","H",4.59],["2026-12-22T18:08","L",0.25],["2026-12-22T23:44","H",4.58],["2026-12-23T06:37","L",0.29],["2026-12-23T12:03","H",4.76],["2026-12-23T18:59","L",0.18],["2026-12-24T00:32","H",4.67],["2026-12-24T07:27","L",0.13],["2026-12-24T12:51","H",4.88],["2026-12-24T19:47","L",0.16],["2026-12-25T01:17","H",4.72],["2026-12-25T08:13","L",0.01],["2026-12-25T13:38","H",4.96],["2026-12-25T20:33","L",0.18],["2026-12-26T02:02","H",4.76],["2026-12-26T08:59","L",-0.09],["2026-12-26T14:24","H",4.99],["2026-12-26T21:18","L",0.21],["2026-12-27T02:47","H",4.77],["2026-12-27T09:45","L",-0.15],["2026-12-27T15:12","H",4.96],["2026-12-27T22:03","L",0.26],["2026-12-28T03:34","H",4.75],["2026-12-28T10:32","L",-0.17],["2026-12-28T16:03","H",4.88],["2026-12-28T22:50","L",0.34],["2026-12-29T04:25","H",4.69],["2026-12-29T11:20","L",-0.11],["2026-12-29T17:00","H",4.74],["2026-12-29T23:38","L",0.46],["2026-12-30T05:22","H",4.58],["2026-12-30T12:11","L",0.02],["2026-12-30T18:02","H",4.56],["2026-12-31T00:29","L",0.62],["2026-12-31T06:23","H",4.43],["2026-12-31T13:05","L",0.21],["2026-12-31T19:02","H",4.36]].map(([t,s,h])=>({t:new Date(t),s,h}));
+const MAAN={"2026-10-03": "LK", "2026-10-10": "NM", "2026-10-18": "EK", "2026-10-26": "VM", "2026-11-01": "LK", "2026-11-09": "NM", "2026-11-17": "EK", "2026-11-24": "VM", "2026-12-01": "LK", "2026-12-09": "NM", "2026-12-17": "EK", "2026-12-24": "VM", "2026-12-30": "LK"};   // maanfasen: NM, EK, VM, LK
+const SEA="#2f6fb3";
+const PIJL_OP=`<svg viewBox="0 0 24 24"><path d="M12 3l8 9h-5v9h-6v-9H4z"/></svg>`;
+const PIJL_NEER=`<svg viewBox="0 0 24 24" style="transform:rotate(180deg)"><path d="M12 3l8 9h-5v9h-6v-9H4z"/></svg>`;
+const hm=d=>pad2(d.getHours())+":"+pad2(d.getMinutes());
+const m2=v=>kom(v.toFixed(2));
+function hoogte(t){
+  const i=GETIJ.findIndex(e=>e.t>t);if(i<=0)return null;
+  const a=GETIJ[i-1],b=GETIJ[i],f=(t-a.t)/(b.t-a.t);
+  return a.h+(b.h-a.h)*(1-Math.cos(Math.PI*f))/2;
+}
+/* zonsopgang/-ondergang (NOAA-benadering) voor de nachtschaduw */
+function zon(d){
+  const rad=Math.PI/180,j=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+  const g=2*Math.PI/365*(j-1);
+  const eq=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+  const dec=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
+  const ha=Math.acos(Math.cos(90.833*rad)/(Math.cos(LAT*rad)*Math.cos(dec))-Math.tan(LAT*rad)*Math.tan(dec))/rad;
+  const utc0=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
+  return {op:new Date(utc0+(720-4*(LON+ha)-eq)*6e4),onder:new Date(utc0+(720-4*(LON-ha)-eq)*6e4)};
+}
+/* springtij/doodtij: ±2 dagen na nieuwe of volle maan = springtij, na eerste of laatste kwartier = doodtij */
+function tijType(d){
+  for(let k=0;k<=3;k++){const x=new Date(d);x.setDate(x.getDate()-k);const f=MAAN[ymdL(x)];
+    if(f)return (f==="NM"||f==="VM")?"Springtij":"Doodtij";}
+  return "";
+}
+const ymdL=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+function renderGetij(){
+  const nu=new Date(),d0=new Date(nu.getFullYear(),nu.getMonth(),nu.getDate()),d1=new Date(+d0+864e5),d2=new Date(+d1+864e5);
+  const h=hoogte(nu);
+  if(h==null){$("gnow").innerHTML=`<div class="k">Getij</div><div class="nx">Geen getijtafel voor deze datum. Nieuwe tafels toevoegen.</div>`;return;}
+  const vlg=GETIJ.find(e=>e.t>nu),stijgt=vlg.s==="H";
+  const min=Math.round((vlg.t-nu)/6e4),uu=Math.floor(min/60),mm=min%60;
+  const type=tijType(nu);
+  $("gnow").innerHTML=`<div class="k">Nu</div><div class="h"><b>${m2(h)}</b><small>m</small></div>
+    <div class="tr" style="color:${stijgt?SEA:"var(--fg)"}">${stijgt?PIJL_OP:PIJL_NEER}${stijgt?"Opkomend":"Afgaand"}</div>
+    <div class="nx">${stijgt?"Hoogwater":"Laagwater"} over <b>${uu?uu+" u ":""}${uu?pad2(mm):mm} min</b></div>`;
+  const vandaag=GETIJ.filter(e=>e.t>=d0&&e.t<d1);
+  const tegels=vandaag.map(e=>`<div class="gx ${e.s==="H"?"hw":"lw"}${e.t<nu?" voorbij":""}"><div class="k">${e.s==="H"?PIJL_OP:PIJL_NEER}${e.s==="H"?"Hoogwater":"Laagwater"}</div><div class="t">${hm(e.t)}</div><div class="v">${m2(e.h)} m</div></div>`);
+  while(tegels.length<4)tegels.push(`<div class="gx leeg"></div>`);
+  $("gext").innerHTML=tegels.join("");
+  // morgen
+  const morgen=GETIJ.filter(e=>e.t>=d1&&e.t<d2);
+  $("gmorgen").innerHTML=`<span class="k">Morgen</span>`+morgen.map(e=>`<span>${e.s==="H"?"HW":"LW"} <b>${hm(e.t)}</b> ${m2(e.h)} m</span>`).join("")+(type?`<span class="tag" style="margin-left:auto">${type}</span>`:"");
+  tekenCurve(d0,d1,nu);
+}
+function tekenCurve(d0,d1,nu){
+  const svg=$("gsvg"),W=svg.clientWidth||1000,H=svg.clientHeight||300,padT=H*.16,padB=H*.24,axis=H*.1;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const pts=[];for(let m=0;m<=1440;m+=10){const t=new Date(+d0+m*6e4),v=hoogte(t);if(v!=null)pts.push([m,v]);}
+  if(!pts.length)return;
+  const vs=GETIJ.filter(e=>e.t>=new Date(+d0-864e5)&&e.t<new Date(+d1+864e5)).map(e=>e.h);
+  const lo=Math.min(...vs)-.3,hi=Math.max(...vs)+.3;
+  const X=m=>m/1440*W,Y=v=>padT+(1-(v-lo)/(hi-lo))*(H-padT-padB);
+  let s="";
+  // nacht
+  const z=zon(d0),mo=(+z.op-d0)/6e4,mn=(+z.onder-d0)/6e4;
+  s+=`<rect x="0" y="0" width="${X(mo)}" height="${H-axis}" fill="#efeee9"/><rect x="${X(mn)}" y="0" width="${W-X(mn)}" height="${H-axis}" fill="#efeee9"/>`;
+  // uurlijnen + labels
+  for(let u=0;u<=24;u+=3){s+=`<line x1="${X(u*60)}" x2="${X(u*60)}" y1="0" y2="${H-axis}" stroke="#e2dfd8" stroke-width="1"/>`;
+    if(u<24)s+=`<text x="${X(u*60)+6}" y="${H-axis*.15}" font-size="${H*.06}" font-weight="600" fill="#a8a49f">${pad2(u)}</text>`;}
+  // vlak + lijn
+  const line=pts.map(([m,v],i)=>(i?"L":"M")+X(m).toFixed(1)+" "+Y(v).toFixed(1)).join("");
+  s+=`<defs><linearGradient id="gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa7e0" stop-opacity=".55"/><stop offset="1" stop-color="#6aa7e0" stop-opacity=".08"/></linearGradient></defs>`;
+  s+=`<path d="${line}L${X(pts[pts.length-1][0])} ${H-axis}L${X(pts[0][0])} ${H-axis}Z" fill="url(#gw)"/>`;
+  s+=`<path d="${line}" fill="none" stroke="${SEA}" stroke-width="${H*.012}" stroke-linejoin="round"/>`;
+  // hoog- en laagwaters labelen
+  GETIJ.filter(e=>e.t>=d0&&e.t<d1).forEach(e=>{const m=(e.t-d0)/6e4,x=X(m),y=Y(e.h),up=e.s==="H";
+    s+=`<circle cx="${x}" cy="${y}" r="${H*.018}" fill="#fff" stroke="${SEA}" stroke-width="${H*.01}"/>`;
+    const ty=up?y-H*.06:y+H*.09,anchor=x<W*.06?"start":x>W*.94?"end":"middle";
+    s+=`<text x="${x}" y="${ty}" text-anchor="${anchor}" font-size="${H*.065}" font-weight="700" fill="#070504">${hm(e.t)} <tspan fill="${SEA}" font-weight="600">${m2(e.h)}</tspan></text>`;});
+  // nu
+  const mnu=(nu-d0)/6e4,vnu=hoogte(nu);
+  if(mnu>=0&&mnu<=1440&&vnu!=null){const x=X(mnu);
+    s+=`<line x1="${x}" x2="${x}" y1="${padT*.4}" y2="${H-axis}" stroke="#070504" stroke-width="2"/>`;
+    s+=`<circle cx="${x}" cy="${Y(vnu)}" r="${H*.03}" fill="#F8E700" stroke="#070504" stroke-width="3"/>`;
+    s+=`<text x="${x}" y="${padT*.3}" text-anchor="middle" font-size="${H*.06}" font-weight="700" fill="#070504">${hm(nu)}</text>`;}
+  svg.innerHTML=s;
+}
+
+/* ---------- klok ---------- */
+function tick(){const n=new Date(),p=v=>String(v).padStart(2,"0");
+  $("time").innerHTML=`${p(n.getHours())}<span class="colon" style="opacity:${n.getSeconds()%2?1:.15}">:</span>${p(n.getMinutes())}`;
+  const d=n.toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long"});$("date").textContent=d.charAt(0).toUpperCase()+d.slice(1);const td=$("tdate");if(td)td.textContent=d.charAt(0).toUpperCase()+d.slice(1);}
+
+/* ---------- weer ---------- */
+const WMO={0:"Helder",1:"Overwegend helder",2:"Half bewolkt",3:"Bewolkt",45:"Mist",48:"Mist",51:"Lichte motregen",53:"Motregen",55:"Motregen",56:"IJzel",57:"IJzel",61:"Lichte regen",63:"Regen",65:"Hevige regen",66:"IJsregen",67:"IJsregen",71:"Lichte sneeuw",73:"Sneeuw",75:"Hevige sneeuw",77:"Sneeuw",80:"Lichte buien",81:"Buien",82:"Zware buien",85:"Sneeuwbuien",86:"Sneeuwbuien",95:"Onweer",96:"Onweer met hagel",99:"Onweer met hagel"};
+const DIRS=["N","NNO","NO","ONO","O","OZO","ZO","ZZO","Z","ZZW","ZW","WZW","W","WNW","NW","NNW"];
+const dirName=d=>DIRS[Math.round(d/22.5)%16];
+/* Windy-kleurschaal, wind in knopen */
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const rgb=a=>`rgb(${a.map(v=>Math.round(v)).join(",")})`;
+const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+const WS=[[0,"#ffffff"],[4,"#ffffff"],[7,"#a9e7fb"],[11,"#45d84a"],[17,"#c4ea2e"],[22,"#f6a11c"],[28,"#ef5627"],[34,"#df1f3a"],[41,"#c2187a"],[48,"#8e24aa"]].map(([v,c])=>[v,hex(c)]);
+const WIND=v=>{if(v<=WS[0][0])return WS[0][1];for(let i=1;i<WS.length;i++)if(v<=WS[i][0]){const[a,ca]=WS[i-1],[b,cb]=WS[i];return mix(ca,cb,(v-a)/(b-a));}return WS[WS.length-1][1];};
+const lum=c=>0.299*c[0]+0.587*c[1]+0.114*c[2];
+const ink=c=>lum(c)<140?"#ffffff":"#070504";
+/* bijna windstil = wit bij Windy; op een witte of grijze ondergrond tonen we dan een heel lichte blauwtint
+   (loopt vloeiend over in het lichtblauw van 7 kn en valt niet weg tegen de grijze nachtkolommen) */
+const CALM=hex("#dcebf5");
+const windFill=kn=>kn>=7?WIND(kn):mix(CALM,WIND(7),Math.max(0,(kn-4)/3));
+/* pijl die meewaait met de wind (zoals op Windy) */
+const ARROW=`<svg viewBox="0 0 24 24"><path d="M12 2l7.5 9H14v11h-4V11H4.5z"/></svg>`;
+const arrow=dirFrom=>ARROW.replace('<svg ',`<svg style="transform:rotate(${dirFrom+180}deg)" `);
+
+/* vlakke weericonen, zonder contouren */
+function icon(code,isDay=true){
+  const sun=`<circle cx="32" cy="30" r="11" fill="#f7c331"/>`+[0,45,90,135,180,225,270,315].map(a=>`<rect x="30.5" y="8" width="3" height="6" rx="1.5" fill="#f7c331" transform="rotate(${a} 32 30)"/>`).join("");
+  const moon=`<path d="M29.71 16.06A15 15 0 1 0 45.17 35.93A13 13 0 0 1 29.71 16.06Z" fill="#f1d27a"/>`;   // volle, zachtgele maansikkel
+  const cloud=(x=0,y=0,f="#c9cfd6")=>`<path transform="translate(${x} ${y})" d="M19 48h28a9 9 0 0 0 1-18 13 13 0 0 0-25-3 10 10 0 0 0-4 21z" fill="${f}"/>`;
+  const drops=(n,h=7)=>[[24,46],[33,48],[42,46]].slice(0,n).map(([x,y])=>`<rect x="${x}" y="${y}" width="3" height="${h}" rx="1.5" fill="#2e86de" transform="rotate(20 ${x} ${y})"/>`).join("");
+  const bolt=`<path transform="translate(0 -6)" d="M35 44l-7 11h6l-3 9 9-13h-6l3-7z" fill="#f7c331"/>`;
+  const fog=`<rect x="12" y="46" width="40" height="3" rx="1.5" fill="#aeb6bf"/><rect x="16" y="52" width="32" height="3" rx="1.5" fill="#aeb6bf"/>`;
+  const snow=[[23,50],[33,53],[43,50]].map(([x,y])=>`<g transform="translate(${x} ${y})" stroke="#8b93cf" stroke-width="1.6" stroke-linecap="round"><path d="M0-3.6V3.6M-3.1-1.8L3.1 1.8M-3.1 1.8L3.1-1.8"/></g>`).join("");   // sneeuwsterretjes
+  const sky=isDay?sun:moon;
+  if(code===0)return sky;
+  if(code===1)return `<g transform="translate(-5 -1)">${sky}</g>`+cloud(8,6,"#dfe3e8");
+  if(code===2)return `<g transform="translate(-6 -3)">${sky}</g>`+cloud(4,4);
+  if(code===3)return cloud(0,2,"#aeb6bf");
+  if(code===45||code===48)return cloud(0,-6)+fog;
+  if(code>=95)return cloud(0,-8,"#8d96a0")+bolt;
+  if((code>=71&&code<=77)||code===85||code===86)return cloud(0,-6)+snow;
+  if(code>=80)return `<g transform="translate(-6 -3)">${sky}</g>`+cloud(2,-6,"#aeb6bf")+drops(code>=82?3:2);
+  if(code>=61)return cloud(0,-6,"#aeb6bf")+drops(code>=63?3:2);
+  if(code>=51)return cloud(0,-6,"#aeb6bf")+drops(3,4);   // motregen: drie korte druppels
+  return sky;
+}
+
+/* wind nu: grote tag in dezelfde opbouw als de tegels: richting in letters (waar de wind vandaan komt),
+   pijl (waarheen hij waait) en de snelheid, in de Windy-kleur.
+   Windstoten: na 10 s loopt het getal in ruim 2 s op tot de windstoot en kleurt de tag mee, houdt even vast,
+   zakt terug, en na 10 s pauze begint het opnieuw. */
+function iconBottom(code,isDay){
+  if(code===0)return isDay?41:46;
+  if(code===1)return 54; if(code===2)return 52; if(code>=80&&code<=82)return 42; if(code===3)return 50;
+  if(code>=95)return 40;   // (omtrek alle symbolen: x 4–64.5, y 2–58)
+  if(code>=45)return 42;      // mist, motregen, regen, sneeuw, buien: wolk staat hoger
+  return 41;
+}
+let gustTimer=null,gustRaf=null;
+function drawRose(dir,kn,gust){
+  const el=$("wchip");
+  el.innerHTML=`<span class="d">${dirName(dir)}</span>${arrow(dir)}<span class="v" id="wval">${Math.round(kn)}</span>`;
+  const paint=v=>{const c=windFill(v);el.style.background=rgb(c);el.style.color=ink(c);$("wval").textContent=Math.round(v);};
+  paint(kn);
+  clearTimeout(gustTimer);cancelAnimationFrame(gustRaf);
+  if(gust<=kn+0.5||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;   // zacht op- en uitlopen
+  const tween=(from,to,ms,done)=>{const t0=performance.now();
+    const step=now=>{const t=Math.min(1,(now-t0)/ms);paint(from+(to-from)*ease(t));if(t<1)gustRaf=requestAnimationFrame(step);else done();};
+    gustRaf=requestAnimationFrame(step);};
+  const cycle=()=>{gustTimer=setTimeout(()=>tween(kn,gust,2200,()=>{gustTimer=setTimeout(()=>tween(gust,kn,1200,cycle),1200);}),10000);};
+  cycle();
+}
+
+async function loadWx(){
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m&wind_speed_unit=kn&timezone=Europe%2FBrussels&forecast_days=2`);
+    const d=await r.json();if(!r.ok||!d.current)throw 0;const c=d.current,h=d.hourly;
+    $("nowicon").innerHTML=icon(c.weather_code,!!c.is_day);document.querySelector(".hero").style.setProperty("--wxb",iconBottom(c.weather_code,!!c.is_day));
+    fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&current=wave_height`)
+      .then(x=>x.json()).then(m=>{if(m.current&&m.current.wave_height!=null)$("wave").textContent=m.current.wave_height.toFixed(1).replace(".",",");}).catch(()=>{});
+    $("nowtemp").textContent=String(Math.round(c.temperature_2m)).replace("-","−")+"°";$("nowdesc").textContent=WMO[c.weather_code]||"";
+    drawRose(c.wind_direction_10m,c.wind_speed_10m,c.wind_gusts_10m);
+    // komende uren: +3, +6, +9, +12
+    const now=new Date();let i=h.time.findIndex(t=>new Date(t)>now);if(i<0)i=0;
+    $("next").innerHTML=[2,5,8,11].map(o=>{const j=i+o;if(j>=h.time.length)return "";const v=h.wind_speed_10m[j],col=windFill(v);
+      return `<div class="tile"><div class="t">${h.time[j].slice(11,16)}</div><svg class="wx" viewBox="0 0 64 64">${icon(h.weather_code[j],!!h.is_day[j])}</svg><div class="temp">${String(Math.round(h.temperature_2m[j])).replace("-","−")}°</div><div class="chip" style="background:${rgb(col)};color:${ink(col)}">${arrow(h.wind_direction_10m[j])}${Math.round(v)}</div></div>`;}).join("");
+  }catch(e){/* laatste waarden blijven staan */}
+}
+
+/* ---------- ticker ---------- */
+/* Berichten die onderaan voorbijlopen. Later te beheren via een gedeeld document of de agenda. */
+const BERICHTEN=[
+  "Vaargeul Nieuwpoort gestremd van zaterdag 17 oktober tot 2 november",
+  "Restaurant 't Galjoen is gesloten van maandag 5 tot woensdag 7 november - reservaties zijn verplaatst naar Restaurant De Vierboete :-)"
+];
+const TICKER_SNELHEID=75;
+const MORSE=`<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>`;   // eenvoudige punt tussen de berichten
+const MEGAFOON=`<svg viewBox="0 0 256 256"><path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"/></svg>`;   // nieuwsicoon tussen de berichten   // pixels per seconde: rustig leesbaar op tv-afstand
+function startTicker(){
+  const tr=$("track");if(!tr)return;$("mouth").innerHTML=MEGAFOON;
+  const one=BERICHTEN.map(b=>`<i>${MORSE}</i><span>${b.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</span>`).join("");
+  tr.innerHTML=one;const w=tr.scrollWidth||1,box=tr.parentElement.clientWidth;
+  const reps=Math.max(2,Math.ceil(box/w)+1);tr.innerHTML=one.repeat(reps);
+  /* CSS-animatie i.p.v. JavaScript: loopt op de grafische kaart, ook vloeiend op een trage tv */
+  const k=document.createElement("style");k.textContent=`@keyframes tickerLoop{from{transform:translate3d(0,0,0)}to{transform:translate3d(${-w}px,0,0)}}`;document.head.append(k);
+  tr.style.animation=`tickerLoop ${w/TICKER_SNELHEID}s linear infinite`;
+}
+document.fonts&&document.fonts.ready?document.fonts.ready.then(startTicker):startTicker();
+tick();setInterval(tick,1000);renderGetij();setInterval(renderGetij,60*1000);addEventListener('resize',renderGetij);loadWx();setInterval(loadWx,15*60*1000);
+setTimeout(()=>location.reload(),6*36e5);
+</script>
+</body>
+</html>
