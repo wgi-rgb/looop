@@ -165,10 +165,17 @@ main{display:grid;grid-template-columns:1fr 2fr;min-height:0}
 .card .tag{display:inline-flex;align-items:center;height:3.6vh;padding:0 1.1vw;border-radius:999px;background:var(--tag);color:var(--fg);font-size:1.6vh;font-weight:700;letter-spacing:.04em;white-space:nowrap}
 .card .tag i{display:inline-block;width:.55em;height:.55em;border-top:.14em solid currentColor;border-right:.14em solid currentColor;transform:rotate(45deg);margin:0 .9em 0 .6em;opacity:.55}
 .card .tag{background:#4f4b47;color:#fff}
+:root{--rood:#e5483b}
+.card .tag.rood{background:var(--rood);color:#fff}
 .card{position:relative;overflow:hidden}
 /* dual watch: verbinding onder de vakken 16 en 60 */
 .dwrow{position:relative;height:6vh;display:flex;justify-content:center;align-items:flex-end}
-.dwrow::before{content:"";position:absolute;top:0;height:3.4vh;left:calc(25% - .6vw);right:calc(25% - .6vw);border:1px solid #4f4b47;border-top:none;border-radius:0 0 .8vh .8vh}
+/* één verbinding onder 16, 60 en 74: 16 + 60 bij het buitenvaren, 16 + 74 (rood) bij schietoefeningen.
+   Kaartbreedte = (100% − 2 × 1.2vw) / 3; de lijn loopt van het midden van kaart 1 tot het midden van kaart 3. */
+.dwrow::before{content:"";position:absolute;top:0;height:3.4vh;left:calc((100% - 2.4vw) / 6);right:50%;border:2px solid #4f4b47;border-top:none;border-right:none;border-radius:0 0 0 .8vh}
+.dwrow::after{content:"";position:absolute;top:0;height:3.4vh;left:50%;right:calc((100% - 2.4vw) / 6);border:2px solid var(--rood);border-top:none;border-left:none;border-radius:0 0 .8vh 0}
+.dwrow i{position:absolute;top:0;left:calc(50% - 1px);width:2px;height:3.4vh;background:#4f4b47}
+.dwrow span{position:absolute !important;bottom:0;left:calc(((100% - 2.4vw) / 6 + 50%) / 2);transform:translate(-50%,-.8vh) !important;z-index:2}
 .dwrow span{position:relative;height:3.6vh;display:inline-flex;align-items:center;padding:0 1.3vw;border-radius:999px;background:var(--yellow);font-size:1.7vh;font-weight:700;letter-spacing:.04em;box-shadow:0 0 0 .9vh var(--bg,#fff);transform:translateY(-.8vh)}
 .card>*:not(.bg){position:relative}
 .card svg.bg{position:absolute;right:-1.2vw;bottom:-7vh;height:30vh;width:auto;fill:var(--fg);opacity:.035;transform:rotate(-12deg)}
@@ -378,7 +385,7 @@ const MEDEDELING={
   kaarten:[
     {kanaal:"16",wat:"Nood- en oproepkanaal",waarom:"Altijd uitluisteren op zee.",tag:"Bij het buitenvaren",dual:true},
     {kanaal:"60",wat:"Uitluisterplicht kust Nieuwpoort",waarom:"De scheepvaartpolitie controleert hier effectief op.",tag:"Bij het buitenvaren",dual:true},
-    {kanaal:"74",wat:"Schietsector actief",waarom:"Luister bovendien uit op kanaal 74, roepnaam SN — zie het bord bij de havenuitgang.",tag:"Bij schietoefeningen",dual:false}
+    {kanaal:"74",wat:"Schietsector actief",waarom:"Luister bovendien uit op kanaal 74, roepnaam SN — zie het bord bij de havenuitgang.",tag:"Bij schietoefeningen",dual:true,rood:true}
   ]
 };
 const MICON={radio:"M104,168a8,8,0,0,1-8,8H64a8,8,0,0,1,0-16H96A8,8,0,0,1,104,168Zm-8-40H64a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16Zm0-32H64a8,8,0,0,0,0,16H96a8,8,0,0,0,0-16ZM232,80V192a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V72a8,8,0,0,1,5.7-7.66l160-48a8,8,0,0,1,4.6,15.33L86.51,64H216A16,16,0,0,1,232,80ZM216,192V80H40V192H216Zm-16-56a40,40,0,1,1-40-40A40,40,0,0,1,200,136Zm-16,0a24,24,0,1,0-24,24A24,24,0,0,0,184,136Z",sos:"M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm39.1,131.79a47.84,47.84,0,0,0,0-55.58l28.5-28.49a87.83,87.83,0,0,1,0,112.56ZM96,128a32,32,0,1,1,32,32A32,32,0,0,1,96,128Zm88.28-67.6L155.79,88.9a47.84,47.84,0,0,0-55.58,0L71.72,60.4a87.83,87.83,0,0,1,112.56,0ZM60.4,71.72l28.5,28.49a47.84,47.84,0,0,0,0,55.58L60.4,184.28a87.83,87.83,0,0,1,0-112.56ZM71.72,195.6l28.49-28.5a47.84,47.84,0,0,0,55.58,0l28.49,28.5a87.83,87.83,0,0,1-112.56,0Z",police:"M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z",target:"M232,120h-8.34A96.14,96.14,0,0,0,136,32.34V24a8,8,0,0,0-16,0v8.34A96.14,96.14,0,0,0,32.34,120H24a8,8,0,0,0,0,16h8.34A96.14,96.14,0,0,0,120,223.66V232a8,8,0,0,0,16,0v-8.34A96.14,96.14,0,0,0,223.66,136H232a8,8,0,0,0,0-16Zm-96,87.6V200a8,8,0,0,0-16,0v7.6A80.15,80.15,0,0,1,48.4,136H56a8,8,0,0,0,0-16H48.4A80.15,80.15,0,0,1,120,48.4V56a8,8,0,0,0,16,0V48.4A80.15,80.15,0,0,1,207.6,120H200a8,8,0,0,0,0,16h7.6A80.15,80.15,0,0,1,136,207.6ZM128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152Z",info:"M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"};
@@ -389,9 +396,9 @@ function renderMsg(){
   const M=MEDEDELING;$("mtitle").textContent=M.titel;
   const k=M.kaarten, nd=k.filter(c=>c.dual).length;
   $("msg").innerHTML=`<div class="cards">`+k.map(c=>`<div class="card">`+RADIO+
-      `<div class="top"><span class="tag">${c.tag}</span></div>`+
+      `<div class="top"><span class="tag${c.rood?" rood":""}">${c.tag}</span></div>`+
       `<div class="chb"><span class="k">Kanaal</span><div class="ch">${c.kanaal}</div><div class="what">${c.wat}</div><div class="why">${c.waarom}</div></div></div>`).join("")+
-    (nd>1?`<div class="dwrow" style="grid-column:1 / ${nd+1}"><span>Dual watch</span></div>`:"")+`</div>`;
+    (nd>1?`<div class="dwrow" style="grid-column:1 / ${nd+1}"><i></i><span>Dual watch</span></div>`:"")+`</div>`;
 }
 tick();setInterval(tick,1000);renderMsg();loadWx();setInterval(loadWx,15*60*1000);
 setTimeout(()=>location.reload(),6*36e5);
