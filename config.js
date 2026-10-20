@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 7,
-  "bijgewerkt": "2026-10-19T14:19:19.208Z",
+  "versie": 8,
+  "bijgewerkt": "2026-10-20T13:04:37.000Z",
   "slides": [
     {
       "id": "programma",
@@ -57,6 +57,24 @@ window.SIGNAGE_CONFIG = {
       "type": "image",
       "url": "media/cadeaubon.png",
       "bestand": "cadeaubon.png"
+    },
+    {
+      "id": "wind-vandaag",
+      "naam": "Wind vandaag",
+      "url": "wind-vandaag.html",
+      "type": "slide"
+    },
+    {
+      "id": "weer-5-dagen",
+      "naam": "Weer komende 5 dagen",
+      "url": "weer-5-dagen.html",
+      "type": "slide"
+    },
+    {
+      "id": "getij",
+      "naam": "Getij Nieuwpoort",
+      "url": "getij.html",
+      "type": "slide"
     }
   ],
   "playlists": [
@@ -70,6 +88,18 @@ window.SIGNAGE_CONFIG = {
         },
         {
           "slide": "weer",
+          "duur": 20
+        },
+        {
+          "slide": "wind-vandaag",
+          "duur": 20
+        },
+        {
+          "slide": "weer-5-dagen",
+          "duur": 20
+        },
+        {
+          "slide": "getij",
           "duur": 20
         },
         {
