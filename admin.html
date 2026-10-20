@@ -115,6 +115,12 @@ h2{font-size:20px;margin:0;font-weight:700}
 .regels li b{font-weight:600;position:relative}
 .regels li span:not(.balk){position:relative}
 .regels li .balk{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ytint)}
+/* klik op een slide in "Now": de speler springt ernaartoe */
+#nuLijst li[data-slide]{cursor:pointer;transition:border-color .15s}
+#nuLijst li[data-slide]:hover{border-color:var(--fg)}
+#nuLijst li[data-slide] .toon{display:none;color:var(--fg);font-weight:600}
+#nuLijst li[data-slide]:hover:not(.speelt) .toon{display:inline}
+#nuLijst li[data-slide]:hover:not(.speelt) .sec{display:none}
 .regels li.speelt{background:#fff;box-shadow:inset 0 0 0 1.5px var(--coral)}
 .regels li.speelt b::before{content:"▶";font-size:10px;margin-right:8px;vertical-align:1px}
 
@@ -434,14 +440,14 @@ function viewNu() {
   const nu = new Date(), sc = sch(), { playlist: pl, regel } = S.actievePlaylist(cfg, nu, sc.id);
   const lijst = S.speellijst(cfg, pl), w = volgendeWissel(nu, sc);
   const waarom = !pl ? "No playlist is set for this screen." : regel ? `Scheduled · ${regelTekst(regel)}` : "Default playlist · nothing else is scheduled now";
-  const wissel = w ? `${w.tijd.toDateString() === nu.toDateString() ? "Today" : DAGNAAM[S.dag(w.tijd) - 1]} at ${S.hm(w.tijd)}` : "";
+  const wissel = w ? (w.tijd.toDateString() === nu.toDateString() ? `at ${S.hm(w.tijd)}` : `${DAGNAAM[S.dag(w.tijd) - 1]} at ${S.hm(w.tijd)}`) : "";
   const vandaag = [...new Set(segmenten(nu, sc).map(s => s.id).filter(Boolean))];
   $("#view").innerHTML = `
     <div class="kop"><div><h1>Now</h1></div></div>
     ${cfg.schermen.length > 1 ? `<div class="schermen">${cfg.schermen.map(x => `<button class="${x.id === sc.id ? "on" : ""}" data-sc="${x.id}">${ICON.tv}${esc(x.naam)}</button>`).join("")}</div>` : ""}
     <section class="vandaagblok">
       <div class="weekkop"><span class="kicker">Today on ${esc(sc.naam)}</span>
-        ${w ? `<span class="straks">Next: ${wissel} <span class="dot" style="background:${w.pl ? kleur(w.pl.id) : "#ccc"}"></span>${esc(w.pl ? w.pl.naam : "nothing")}</span>` : ""}</div>
+        ${w ? `<span class="straks">Next ${wissel} <span class="dot" style="background:${w.pl ? kleur(w.pl.id) : "#ccc"}"></span>${esc(w.pl ? w.pl.naam : "nothing")}</span>` : ""}</div>
       ${tijdlijn(nu, sc)}${urenAs()}
       <div class="legenda">${vandaag.map(id => { const p = S.playlistById(cfg, id); return `<span><i class="dot" style="background:${kleur(id)}"></i>${esc(p.naam)}</span>`; }).join("")}
         <button class="lnk" id="naarSc" style="margin-left:auto">Edit schedule</button></div>
@@ -452,15 +458,57 @@ function viewNu() {
         <div><span class="kicker">Playing now</span>
           <h1 style="margin-top:8px">${pl ? `<span class="dot" style="background:${kleur(pl.id)}"></span>${esc(pl.naam)}` : "Nothing"}</h1>
           <p class="sub" style="margin:6px 0 0">${esc(waarom)}</p></div>
-        <ol class="regels" id="nuLijst">${lijst.map((s, i) => `<li data-i="${i}"><span class="balk"></span><b>${esc(s.naam)}</b><span>${s.duur} s</span></li>`).join("") || `<li>No items<span></span></li>`}</ol>
+        <ol class="regels" id="nuLijst">${lijst.map((s, i) => `<li data-i="${i}" data-slide="${esc(s.id)}" title="Click to play this slide now"><span class="balk"></span><b>${esc(s.naam)}</b><span class="sec">${s.duur} s</span><span class="toon">Play now</span></li>`).join("") || `<li>No items<span></span></li>`}</ol>
         ${pl ? `<div class="sub" style="font-size:13px">One loop takes ${duurTekst(rondje(pl))} · <button class="lnk" id="naarPl">Edit playlist</button></div>` : ""}
       </div>
     </div>`;
   document.querySelectorAll("[data-sc]").forEach(b => b.onclick = () => { kiesScherm(b.dataset.sc); render(); });
   $("#naarSc").onclick = () => ga("screens");
   if ($("#naarPl")) $("#naarPl").onclick = () => { gekozen = pl.id; ga("playlists"); };
+  document.querySelectorAll("#nuLijst li[data-slide]").forEach(li => li.onclick = () => springNaar(sc, li.dataset.slide));
   speler($("#spelerVb"), $("#scherm"), sc.id);
 }
+
+/* ============================================================ SPRINGEN
+   Klik in "Now" op een slide: de speler springt naar die slide en speelt de playlist daarna verder.
+   Dit staat in een eigen bestand (nu.json), los van de configuratie: niet-gepubliceerde wijzigingen gaan niet mee online. */
+let NU = {}, nuLokaalTot = 0;     // na een klik: de eigen keuze aanhouden tot GitHub Pages bijgewerkt is
+async function springNaar(sc, slideId) {
+  const s = S.slideById(cfg, slideId); if (!s) return;
+  const nieuw = { ...kloon(NU), [sc.id]: { slide: slideId, op: new Date().toISOString() } };
+  NU = nieuw; nuLokaalTot = Date.now() + 3 * 60 * 1000;
+  stuurNu(Date.now());
+  if (window.LOOOP_DEMO) return melding("Preview only · not sent to the TV");
+  if (!gh.repo || !gh.token) return info("Connect GitHub first", "To control the TV from here, connect this browser to GitHub in Settings.");
+  try { await ghBestand("nu.json", JSON.stringify(nieuw, null, 2) + "\n"); melding("“" + s.naam + "” · on the TV within about a minute"); }
+  catch (e) { info("Not sent", esc(e.message)); }
+}
+async function ghBestand(pad, tekst) {
+  const url = `https://api.github.com/repos/${gh.repo}/contents/${pad}`, br = gh.branch || "main";
+  let sha;
+  const g = await fetch(url + "?ref=" + br + "&t=" + Date.now(), { headers: ghHead(), cache: "no-store" });
+  if (g.ok) sha = (await g.json()).sha; else if (g.status !== 404) throw new Error("GitHub did not respond (" + g.status + ").");
+  const r = await fetch(url, { method: "PUT", headers: ghHead(), body: JSON.stringify({ message: "Play now", content: b64(tekst), sha, branch: br }) });
+  if (!r.ok) throw new Error(r.status === 401 ? "The token is invalid or expired." : "GitHub refused the update (" + r.status + ").");
+}
+/* het voorbeeld springt meteen mee; "lokaal" = het moment van de klik */
+let nuKlik = 0;
+function stuurNu(klik) {
+  if (klik) nuKlik = klik;
+  const f = $("#spelerVb"); if (!f || !f.contentWindow) return;
+  const n = kloon(NU), sc = sch().id; if (n[sc] && nuKlik) n[sc].lokaal = nuKlik;
+  f.contentWindow.postMessage({ type: "looop-nu", nu: n }, "*");
+}
+async function laadNu() {
+  if (location.protocol === "file:") return;
+  try {
+    const r = await fetch("nu.json?t=" + Date.now(), { cache: "no-store" }); const n = r.ok ? await r.json() : {};
+    if (JSON.stringify(n) === JSON.stringify(NU)) { nuLokaalTot = 0; return; }
+    if (Date.now() < nuLokaalTot) return;               // online staat nog de vorige versie
+    NU = n; nuKlik = 0; stuurNu();
+  } catch (e) {}
+}
+laadNu(); setInterval(laadNu, 20000);
 /* de speler meldt welke slide speelt: die markeren we in de lijst, met een balkje dat vol loopt */
 window.addEventListener("message", e => {
   if (!e.data || e.data.type !== "looop-speelt") return;
@@ -504,7 +552,7 @@ function speler(frame, kader, scId, plId) {
   const schaal = () => { frame.style.transform = `scale(${kader.clientWidth / 1920})`; };
   schaal(); new ResizeObserver(schaal).observe(kader);
   if (stuurFn) window.removeEventListener("message", stuurFn);
-  stuurFn = e => { if (e.source === frame.contentWindow && e.data && e.data.type === "looop-speler-klaar") frame.contentWindow.postMessage({ type: "looop-config", cfg: kloon(cfg) }, "*"); };
+  stuurFn = e => { if (e.source === frame.contentWindow && e.data && e.data.type === "looop-speler-klaar") { frame.contentWindow.postMessage({ type: "looop-config", cfg: kloon(cfg) }, "*"); if (frame.id === "spelerVb") stuurNu(); } };
   window.addEventListener("message", stuurFn);
   frame.src = "index.html?preview&scherm=" + encodeURIComponent(scId) + (plId ? "&playlist=" + encodeURIComponent(plId) : "");
 }

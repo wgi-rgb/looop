@@ -34,7 +34,9 @@
    - onthoudt de laatste werkende configuratie, zodat het scherm blijft spelen zonder internet
    - herlaadt zichzelf elke nacht om 04:00 (houdt de TV-browser fris)
    Scherm kiezen: ?scherm=scherm-2 (zonder: het eerste scherm)
-   Testen: ?playlist=avond  ·  ?nu=2026-10-19T20:00  ·  ?label=1 (toont welke playlist speelt) */
+   Testen: ?playlist=avond  ·  ?nu=2026-10-19T20:00  ·  ?label=1 (toont welke playlist speelt)
+   - Springen: klik je in het beheer ("Now") op een slide, dan staat in nu.json welke slide.
+     De speler springt naar die slide en speelt de playlist daarna gewoon verder vanaf daar. */
 const Q = new URLSearchParams(location.search);
 const S = window.Signage;
 const PREVIEW = Q.has("preview");
@@ -78,11 +80,39 @@ function laad(frame, slide) {
 
 /* Klokgestuurd afspelen: welke slide speelt, volgt uit de klok (seconden sinds 1970, modulo de duur
    van één rondje). Zo tonen alle schermen en het voorbeeld in het beheer op hetzelfde moment dezelfde slide. */
+/* Springen: verschuift het startpunt van de klok zodat de gekozen slide begint op het moment
+   dat deze speler de sprong ziet. Dat moment wordt onthouden, zodat een herstart niet opnieuw springt. */
+let NU = {};
+const SPRONG = "looop-sprong";
+function sprongAnker(l) {
+  const sc = S.schermById(cfg, SCHERM).id, o = NU && NU[sc];
+  if (!o || !o.slide || !o.op || Q.get("playlist")) return 0;
+  const k = l.findIndex(s => s.id === o.slide); if (k < 0) return 0;
+  let gezien = null;
+  if (PREVIEW) gezien = o.lokaal || Date.parse(o.op);
+  else {
+    try { const b = JSON.parse(localStorage.getItem(SPRONG) || "null"); if (b && b.op === o.op && b.sc === sc) gezien = b.gezien; } catch (e) {}
+    if (gezien == null) {
+      gezien = Date.now() - Date.parse(o.op) < 10 * 60 * 1000 ? nu().getTime() : Date.parse(o.op);   // oude sprong: niet opnieuw springen
+      try { localStorage.setItem(SPRONG, JSON.stringify({ op: o.op, sc, gezien })); } catch (e) {}
+    }
+  }
+  const voorK = l.slice(0, k).reduce((t, s) => t + s.duur, 0);
+  return gezien / 1000 - voorK;
+}
 function positie(l) {
-  const totaal = l.reduce((t, s) => t + s.duur, 0), t = (nu().getTime() / 1000) % totaal;
+  const totaal = l.reduce((t, s) => t + s.duur, 0), t = (((nu().getTime() / 1000 - sprongAnker(l)) % totaal) + totaal) % totaal;
   let start = 0;
   for (let i = 0; i < l.length; i++) { if (t < start + l[i].duur) return { i, rest: start + l[i].duur - t }; start += l[i].duur; }
   return { i: 0, rest: l[0].duur };
+}
+async function checkNu() {
+  if (location.protocol === "file:") return;
+  try {
+    const r = await fetch("nu.json?t=" + Date.now(), { cache: "no-store" });
+    const n = r.ok ? await r.json() : {};
+    if (JSON.stringify(n) !== JSON.stringify(NU)) { NU = n; if (gestart) volgende(); }
+  } catch (e) { /* offline of nog geen nu.json */ }
 }
 async function volgende() {
   clearTimeout(timer);
@@ -152,6 +182,7 @@ async function check() {
 /* Voorbeeld vanuit het beheer: configuratie komt via postMessage */
 window.addEventListener("message", e => {
   if (e.data && e.data.type === "looop-config") { cfg = S.migreer(e.data.cfg); sleutel = ""; volgende(); }
+  if (e.data && e.data.type === "looop-nu") { NU = e.data.nu || {}; volgende(); }
 });
 
 /* Nachtelijke herstart om 04:00 */
@@ -163,7 +194,8 @@ window.addEventListener("message", e => {
 if (!PREVIEW) {
   try { if (cfg) localStorage.setItem(BEWAAR, JSON.stringify(cfg)); } catch (e) {}
   setInterval(check, 15 * 1000);
-  check().finally(() => { gestart = true; volgende(); });
+  setInterval(checkNu, 10 * 1000);
+  Promise.all([check(), checkNu()]).finally(() => { gestart = true; volgende(); });
 } else {
   parent.postMessage({ type: "looop-speler-klaar" }, "*");
 }
