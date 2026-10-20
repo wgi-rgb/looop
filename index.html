@@ -17,6 +17,8 @@
   #leeg.aan{display:flex}
   #tag{position:fixed;left:1.5vw;top:1.5vh;padding:.6vh .9vw;border-radius:999px;background:#1f2a2e;color:#fff;
     font:700 1.4vh system-ui,sans-serif;display:none;z-index:9}
+#muziekStart{position:fixed;right:2vw;top:2vh;z-index:20;background:rgba(7,5,4,.82);color:#fff;font:600 1.8vh system-ui,sans-serif;padding:1vh 1.4vw;border-radius:999px}
+#muziekStart span{color:#F8E700;margin-right:.4vw}
 </style>
 <script src="config.js"></script>
 <script>document.write('<script src="signage-core.js?v=' + Date.now() + '"><\/script>');</script>
@@ -26,6 +28,7 @@
 <iframe id="fB" title="slide"></iframe>
 <div id="leeg"><span class="wm" aria-label="looop">l<span class="o">o</span><span class="o on">o</span><span class="o">o</span>p</span><span>Nothing scheduled</span></div>
 <div id="tag"></div>
+<div id="muziekStart" hidden><span>♪</span> Druk op OK om de muziek te starten</div>
 <script>
 /* LOOOP speler
    - speelt de playlist die volgens het schema nu geldt (bovenste regel wint, anders de standaard)
@@ -186,7 +189,7 @@ async function check() {
     const c = S.migreer(S.leesConfigTekst(await r.text()));
     if (JSON.stringify(c) !== JSON.stringify(cfg)) {
       cfg = c; localStorage.setItem(BEWAAR, JSON.stringify(cfg));
-      if (gestart) { sleutel = ""; volgende(); }     // meteen naar de nieuwe playlist, op de klok van de andere schermen
+      if (gestart) { sleutel = ""; volgende(); muziek(); }     // meteen naar de nieuwe playlist, op de klok van de andere schermen
     }
   } catch (e) { /* offline: verder met wat we hebben */ }
 }
@@ -198,6 +201,33 @@ window.addEventListener("message", e => {
   if (e.data && e.data.type === "looop-ticker-vraag") { const f = frames.find(x => x.contentWindow === e.source); if (f) stuurTicker(f); }
 });
 
+/* ---------- Achtergrondmuziek ----------
+   Per scherm in te stellen (Screens → Background music). De stream speelt in deze pagina, die blijft staan
+   terwijl de slides wisselen. Mag de browser niet zelf starten, dan vraagt het scherm één druk op OK. */
+const audio = new Audio(); audio.preload = "none";
+let muziekWil = false, muziekFout = 0;
+function muziekNodig() {
+  if (PREVIEW || !cfg) return null;
+  const m = (S.schermById(cfg, SCHERM) || {}).muziek;
+  if (!m || !m.aan || !m.url) return null;
+  const t = S.hm(nu()), van = m.van || "00:00", tot = m.tot || "24:00";
+  const binnen = van <= tot ? (t >= van && t < tot) : (t >= van || t < tot);
+  return binnen ? m : null;
+}
+function muziek() {
+  const m = muziekNodig();
+  if (!m) { muziekWil = false; if (!audio.paused) audio.pause(); document.getElementById("muziekStart").hidden = true; return; }
+  muziekWil = true;
+  audio.volume = Math.min(1, Math.max(0, (m.volume || 40) / 100));
+  if (audio.dataset.url !== m.url) { audio.dataset.url = m.url; audio.src = m.url; }
+  if (audio.paused) audio.play().then(() => { muziekFout = 0; document.getElementById("muziekStart").hidden = true; })
+    .catch(e => { if (e && e.name === "NotAllowedError") document.getElementById("muziekStart").hidden = false; });
+}
+audio.addEventListener("error", () => { if (!muziekWil) return; muziekFout++; setTimeout(() => { audio.dataset.url = ""; muziek(); }, Math.min(300, 15 * muziekFout) * 1000); });
+audio.addEventListener("ended", () => { if (muziekWil) { audio.dataset.url = ""; muziek(); } });   // stream onderbroken: opnieuw verbinden
+["keydown", "click", "touchstart"].forEach(t => window.addEventListener(t, () => { if (muziekWil && audio.paused) muziek(); }));
+setInterval(muziek, 30 * 1000);
+
 /* Nachtelijke herstart om 04:00 */
 (function plan() {
   const n = new Date(), t = new Date(n); t.setHours(4, 0, 0, 0); if (t <= n) t.setDate(t.getDate() + 1);
@@ -208,7 +238,7 @@ if (!PREVIEW) {
   try { if (cfg) localStorage.setItem(BEWAAR, JSON.stringify(cfg)); } catch (e) {}
   setInterval(check, 15 * 1000);
   setInterval(checkNu, 10 * 1000);
-  Promise.all([check(), checkNu()]).finally(() => { gestart = true; volgende(); });
+  Promise.all([check(), checkNu()]).finally(() => { gestart = true; volgende(); muziek(); });
 } else {
   parent.postMessage({ type: "looop-speler-klaar" }, "*");
 }

@@ -186,6 +186,11 @@ h2{font-size:20px;margin:0;font-weight:700}
 .bericht input:focus{box-shadow:0 2px 0 var(--pine)}
 .bericht.uit input{color:var(--muted)}
 .tickered .leeg{color:var(--muted);font-size:14px}
+.card.muziek{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px}
+.card.muziek.uit .kies,.card.muziek.uit .vol,.card.muziek.uit .uren{opacity:.45}
+.card.muziek .veldje{flex:1 1 260px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+.card.muziek .vol,.card.muziek .uren{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted)}
+.card.muziek input[type=time]{font:inherit;border:1px solid var(--line);border-radius:8px;padding:4px 6px}
 .melding .lbl{flex:0 0 150px;font-weight:700}
 .melding .txt{flex:1}
 .melding .drk{flex:none;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;background:#f3e2c4;color:#8a5a00;cursor:pointer}
@@ -598,6 +603,8 @@ function viewScreens() {
             <span class="sub" style="font-weight:500">plays whenever nothing else is scheduled</span></div>
         </div>
 
+        ${muziekSectie(sc)}
+
         <div class="sectie">
           <span class="kicker">Schedules</span>
           <div class="items" id="regels">
@@ -635,6 +642,7 @@ function viewScreens() {
   $("#scVb").onclick = () => voorbeeld(sc.naam, "speler", sc.id);
   if ($("#scDel")) $("#scDel").onclick = async () => { if (!await bevestig(`Delete "${sc.naam}"?`, "Its schedules will be lost. Playlists and the library stay.")) return; cfg.schermen = cfg.schermen.filter(x => x !== sc); kiesScherm(cfg.schermen[0].id); bewaar(); melding("Screen deleted"); };
   $("#std").onchange = e => { sc.standaard = e.target.value; bewaar(); };
+  koppelMuziek(sc);
   $("#regelErbij").onclick = () => regelEditor(sc, null);
   $("#wTerug").onclick = () => { weekVerschuiving--; render(); };
   $("#wVerder").onclick = () => { weekVerschuiving++; render(); };
@@ -832,6 +840,45 @@ function kiesItem(pl, tab = "slide") {
     const n = telIn(s.id), t = b.querySelector(".in"); t.hidden = false; t.textContent = "✓ " + (n > 1 ? n + "×" : "Added");
     melding(`${s.naam} added`);
   });
+}
+
+/* ============================================================ MUZIEK
+   Achtergrondmuziek per scherm: een radiostream speelt door terwijl de slides wisselen.
+   Enkel directe audiostreams (mp3/aac). Test een zender met "Listen" voor je publiceert. */
+const ZENDERS = [
+  { naam: "Radio Swiss Jazz", url: "https://stream.srg-ssr.ch/m/rsj/mp3_128" },
+  { naam: "Radio Swiss Classic", url: "https://stream.srg-ssr.ch/m/rsc_de/mp3_128" },
+  { naam: "Klara Continuo", url: "https://icecast.vrtcdn.be/klaracontinuo-high.mp3" },
+  { naam: "SomaFM Groove Salad (ambient)", url: "https://ice2.somafm.com/groovesalad-128-mp3" }];
+let testAudio = null;
+function muziekSectie(sc) {
+  const m = sc.muziek || {}, eigen = m.url && !ZENDERS.some(z => z.url === m.url);
+  return `<div class="sectie">
+    <span class="kicker">Background music</span>
+    <div class="card muziek ${m.aan ? "" : "uit"}">
+      <button class="sw ${m.aan ? "on" : ""}" id="muAan" aria-pressed="${!!m.aan}" aria-label="Music on or off"></button>
+      <select class="kies" id="muZender" aria-label="Station">${ZENDERS.map(z => `<option value="${esc(z.url)}" ${z.url === m.url ? "selected" : ""}>${esc(z.naam)}</option>`).join("")}<option value="eigen" ${eigen ? "selected" : ""}>Other stream…</option></select>
+      <input id="muUrl" class="veldje" placeholder="https://… (direct audio stream)" value="${esc(eigen ? m.url : "")}" ${eigen ? "" : "hidden"}>
+      <label class="vol">Volume <input type="range" id="muVol" min="5" max="100" step="5" value="${m.volume || 40}"></label>
+      <label class="uren">from <input type="time" id="muVan" value="${esc(m.van || "08:00")}"> to <input type="time" id="muTot" value="${esc(m.tot || "18:00")}"></label>
+      <button class="btn klein" id="muTest">${testAudio && !testAudio.paused ? "Stop" : "Listen"}</button>
+    </div>
+    <span class="sub" style="font-size:12.5px">Keeps playing while slides change. A TV browser may ask for one button press before sound starts. Playing music in a public space requires a licence (in Belgium: Unisono).</span>
+  </div>`;
+}
+function koppelMuziek(sc) {
+  const m = () => (sc.muziek = sc.muziek || { aan: false, url: ZENDERS[0].url, volume: 40, van: "08:00", tot: "18:00" });
+  $("#muAan").onclick = () => { const x = m(); x.aan = !x.aan; if (!x.url) x.url = ZENDERS[0].url; bewaar(); };
+  $("#muZender").onchange = e => { const x = m(); if (e.target.value === "eigen") { $("#muUrl").hidden = false; $("#muUrl").focus(); return; } x.url = e.target.value; bewaar(); };
+  $("#muUrl").onchange = e => { const v = e.target.value.trim(); if (!/^https:\/\//.test(v)) return melding("Use an https:// address"); m().url = v; bewaar(); };
+  $("#muVol").onchange = e => { m().volume = +e.target.value; bewaar(false); if (testAudio) testAudio.volume = +e.target.value / 100; };
+  $("#muVan").onchange = e => { m().van = e.target.value; bewaar(false); };
+  $("#muTot").onchange = e => { m().tot = e.target.value; bewaar(false); };
+  $("#muTest").onclick = () => {
+    if (testAudio && !testAudio.paused) { testAudio.pause(); testAudio = null; $("#muTest").textContent = "Listen"; return; }
+    const x = m(); testAudio = new Audio(x.url); testAudio.volume = (x.volume || 40) / 100;
+    testAudio.play().then(() => $("#muTest").textContent = "Stop").catch(() => { testAudio = null; info("This stream doesn't play", "Check the address: it must be a direct audio stream (mp3 or aac), not a web page."); });
+  };
 }
 
 /* ============================================================ NOTICES
