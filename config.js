@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 14,
-  "bijgewerkt": "2026-10-20T15:41:38.000Z",
+  "versie": 15,
+  "bijgewerkt": "2026-10-20T15:49:38.000Z",
   "slides": [
     {
       "id": "programma",
@@ -98,6 +98,12 @@ window.SIGNAGE_CONFIG = {
       "id": "aandachtspunten",
       "naam": "Aandachtspunten boten",
       "url": "aandachtspunten.html",
+      "type": "slide"
+    },
+    {
+      "id": "onthaal",
+      "naam": "Onthaal – welkom per boot (voorbeeld)",
+      "url": "onthaal.html",
       "type": "slide"
     }
   ],
