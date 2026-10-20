@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 12,
-  "bijgewerkt": "2026-10-20T15:06:38.000Z",
+  "versie": 13,
+  "bijgewerkt": "2026-10-20T15:17:22.000Z",
   "slides": [
     {
       "id": "programma",
@@ -81,6 +81,18 @@ window.SIGNAGE_CONFIG = {
       "naam": "Nu op zee",
       "url": "nu-op-zee.html",
       "type": "slide"
+    },
+    {
+      "id": "webcam-blankenberge",
+      "naam": "Webcam Blankenberge",
+      "url": "webcam-blankenberge.html",
+      "type": "slide"
+    },
+    {
+      "id": "webcam-zeebrugge",
+      "naam": "Webcam Zeebrugge",
+      "url": "webcam-zeebrugge.html",
+      "type": "slide"
     }
   ],
   "playlists": [
@@ -130,6 +142,14 @@ window.SIGNAGE_CONFIG = {
         },
         {
           "slide": "webcam-oostende",
+          "duur": 15
+        },
+        {
+          "slide": "webcam-blankenberge",
+          "duur": 15
+        },
+        {
+          "slide": "webcam-zeebrugge",
           "duur": 15
         }
       ],
