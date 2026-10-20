@@ -167,27 +167,40 @@ header{padding:3vh 3.5vw !important}
 .wtag{display:flex;align-items:center;justify-content:center;gap:.25vw;width:100%;height:100%;border-radius:1vh;font-size:var(--t-num-s);font-weight:800}
 .wtag svg{width:1.7vh;height:1.7vh;fill:currentColor;flex:none}
 
-/* ===== nu op zee ===== */
+/* ===== nu op zee: boei Nieuwpoort centraal, wind van Oostende en Westhinder ernaast ===== */
 .prog{grid-template-rows:auto 1fr !important}
 .title{margin-bottom:var(--s4) !important}
-.zee{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1vw;min-height:0;align-content:start}
+.zee{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:1vw;min-height:0;align-content:start}
+.kol{display:grid;gap:1vw;align-content:start;min-width:0}
+.wk{gap:var(--s1) !important;padding:var(--s2) 1.4vw !important}
 .st{background:var(--panel);border-radius:1.6vh;padding:var(--s3) 1.4vw;display:grid;gap:var(--s2);align-content:start;min-width:0;overflow:hidden}
-.st .nm{display:grid;gap:.4vh}
+.st .nm{display:flex;align-items:baseline;gap:.8vw;flex-wrap:wrap}
 .st .nm b{font-size:var(--t-title);font-weight:700}
-.st .nm span{font-size:1.5vh;font-weight:600;color:var(--muted);white-space:nowrap}
+.st .nm span{font-size:1.5vh;font-weight:600;color:var(--muted)}
 .st .k{font-size:var(--t-label);font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-.st .wind{display:flex;align-items:center;gap:1vw}
-.st .big{display:flex;align-items:center;gap:.5vw;height:7.4vh;padding:0 1.1vw;border-radius:999px;font-size:4.8vh;flex:none;font-weight:800;line-height:1}
-.st .big svg{width:3vh;height:3vh;fill:currentColor}
-.st .big small{font-size:1.9vh;font-weight:700;opacity:.75;margin-top:1.4vh}
-.st .wtx{display:grid;gap:.5vh;font-size:var(--t-text);font-weight:600;color:var(--muted);min-width:0}
-.st .wtx b{color:var(--fg);font-weight:700;font-size:2.2vh}
-.st svg.spark{width:100%;height:16vh;display:block}
-.st .rij{display:flex;align-items:baseline;justify-content:space-between;gap:.6vw;padding-top:var(--s2);border-top:1px solid #e2dfd8}
-.st .rij .v{font-size:3.4vh;font-weight:800;color:#2f6fb3}
-.st .rij .v small{font-size:1.6vh;font-weight:700;color:var(--muted);margin-left:.3vw}
-.st .rij .x{font-size:1.5vh;font-weight:600;color:var(--muted);text-align:right}
-.st .geen{font-size:var(--t-text);font-weight:600;color:var(--soft);height:calc(7.4vh + 16vh + var(--s2));display:flex;align-items:center;justify-content:center;text-align:center;border:2px dashed #e2dfd8;border-radius:1.2vh;padding:0 1vw}
+/* boei */
+.boei .hoofd{display:flex;align-items:flex-end;gap:2vw}
+.boei .gh{display:flex;align-items:baseline;gap:.4vw;color:#1f5d9e}
+.boei .gh b{font-size:9vh;font-weight:800;line-height:.9;letter-spacing:-.02em}
+.boei .gh small{font-size:2.4vh;font-weight:700;color:var(--muted)}
+.boei .trend{font-size:var(--t-text);font-weight:700;padding-bottom:1vh}
+.boei .feiten{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6vw}
+.boei .f{background:#fff;border-radius:1.2vh;padding:var(--s2) .9vw;display:grid;gap:.4vh}
+.boei .f .k{font-size:1.2vh;letter-spacing:.14em}
+.boei .f b{font-size:3vh;font-weight:800}
+.boei .f b small{font-size:1.5vh;font-weight:700;color:var(--muted);margin-left:.2vw}
+.boei svg.golf{width:100%;height:17vh;display:block}
+/* windkaarten */
+.wk .wind{display:flex;align-items:center;gap:1vw}
+.wk .big{display:flex;align-items:center;gap:.5vw;height:6.2vh;padding:0 1vw;border-radius:999px;font-size:4.2vh;font-weight:800;line-height:1;flex:none}
+.wk .big svg{width:2.8vh;height:2.8vh;fill:currentColor}
+.wk .big small{font-size:1.8vh;font-weight:700;opacity:.75;margin-top:1.3vh}
+.wk .wtx{display:grid;gap:.5vh;font-size:var(--t-text);font-weight:600;color:var(--muted);min-width:0}
+.wk .wtx b{color:var(--fg);font-weight:700;font-size:2.2vh}
+.wk svg.spark{width:100%;height:5.5vh;display:block}
+.wk .rij{display:flex;align-items:baseline;gap:.8vw;padding-top:var(--s1);border-top:1px solid #e2dfd8;font-size:var(--t-text);font-weight:600;color:var(--muted)}
+.wk .rij b{font-size:2.6vh;font-weight:800;color:#2f6fb3}
+.geen{font-size:var(--t-text);font-weight:600;color:var(--soft)}
 .src{font-size:1.3vh;font-weight:600;color:var(--soft)}
 
 </style>
@@ -249,11 +262,12 @@ const windTag=(kn,dir,extra="")=>{const c=windFill(kn);return `<span class="wtag
 
 /* ---------- nu op zee ----------
    Echte metingen van het Meetnet Vlaamse Banken (via het Apps Script "VVS Meetnet").
-   Per station: wind (gemiddeld, stoten, richting) en golfhoogte. Wind in m/s → knopen.
-   Een meting ouder dan 60 minuten telt als "geen recente meting". */
+   Links: de golfboei van Nieuwpoort (de belangrijkste voor VVS). Rechts: wind in Oostende en op de Westhinder.
+   Wind in m/s → knopen, golven in cm → m. Ouder dan 60 min (golven 90 min) = geen recente meting. */
 const MEETNET_URL="https://script.google.com/macros/s/AKfycbyqwihodr-9sSxnsg8s-4m0jpcdCpMeMi9-0u7YmMVJE1ZrU1nbyXQ88DQ4D0jSqmms/exec";
-const STATIONS=[
-  {naam:"Nieuwpoort",sub:"pier",wind:["NP7"],golf:"NPBGHA",golfMax:"NPBGH1",temp:"NPBTZW"},
+const BOEI={golf:"NPBGHA",hoog:"NPBGH1",deining:"NPBHLF",periode:"NPBGTZ",temp:"NPBTZW"};
+const WINDSTATIONS=[
+  {naam:"Nieuwpoort",sub:"pier",wind:["NP7"],verberg:true},          // alleen tonen als de windmeter werkt
   {naam:"Oostende",sub:"Meteopark",wind:["OMP","OS7"],golf:"OSNGHA"},
   {naam:"Westhinder",sub:"meetpaal op zee",wind:["MP7"],golf:"WHIGHA"}];
 const KN=1.943844, VERS=60*6e4;
@@ -261,39 +275,57 @@ let ZEE=null;
 const hm=d=>pad2(d.getHours())+":"+pad2(d.getMinutes());
 const reeksVan=(R,id)=>(R[id]||[]).filter(x=>x[1]!=null).map(([t,v])=>({t:new Date(t),v}));
 const laatste=r=>r.length?r[r.length-1]:null;
+const vers=(x,ms)=>x&&Date.now()-x.t<ms?x:null;
 async function loadZee(){
   try{const r=await fetch(MEETNET_URL,{cache:"no-store"});const d=await r.json();if(!d.reeksen)throw 0;ZEE=d;renderZee();}
   catch(e){if(ZEE)renderZee();}
 }
-function spark(sp,gs){
-  if(sp.length<2)return "";
-  const W=400,H=90,t1=Date.now(),t0=t1-12*36e5,mx=Math.max(10,...gs.map(x=>x.v),...sp.map(x=>x.v))*1.1;
-  const X=t=>(t-t0)/(t1-t0)*W,Y=v=>H-v/mx*(H-6);
-  const pts=sp.filter(x=>x.t>=t0),gp=gs.filter(x=>x.t>=t0);if(pts.length<2)return "";
-  const ln=a=>a.map((x,i)=>(i?"L":"M")+X(x.t).toFixed(1)+" "+Y(x.v).toFixed(1)).join("");
-  const kleur=rgb(windFill(laatste(pts).v));
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${ln(pts)}L${X(laatste(pts).t)} ${H}L${X(pts[0].t)} ${H}Z" fill="${kleur}" opacity=".55"/>`+
-    (gp.length>1?`<path d="${ln(gp)}" fill="none" stroke="#6e6a66" stroke-width="2" stroke-dasharray="5 4"/>`:"")+
-    `<path d="${ln(pts)}" fill="none" stroke="#070504" stroke-width="2.5"/></svg>`;
+function lijn(reeksen,uren,H,opties={}){
+  const W=600,t1=Date.now(),t0=t1-uren*36e5;
+  const alle=reeksen.flatMap(r=>r.pts.filter(x=>x.t>=t0));if(alle.length<2)return "";
+  const mx=Math.max(opties.min||0,...alle.map(x=>x.v))*1.12,X=t=>(t-t0)/(t1-t0)*W,Y=v=>H-6-v/mx*(H-14);
+  const d=a=>a.map((x,i)=>(i?"L":"M")+X(x.t).toFixed(1)+" "+Y(x.v).toFixed(1)).join("");
+  let s="";
+  if(opties.as)for(let u=0;u<=uren;u+=6){const x=X(t1-(uren-u)*36e5);s+=`<line x1="${x}" x2="${x}" y1="0" y2="${H}" stroke="#e2dfd8"/>`;
+    s+=`<text x="${Math.min(W-4,Math.max(4,x))}" y="${H-1}" text-anchor="${u===0?"start":u===uren?"end":"middle"}" font-size="13" font-weight="600" fill="#a8a49f">${u===uren?"nu":"−"+(uren-u)+" u"}</text>`;}
+  reeksen.forEach(r=>{const p=r.pts.filter(x=>x.t>=t0);if(p.length<2)return;
+    if(r.vlak)s+=`<path d="${d(p)}L${X(laatste(p).t)} ${H-6}L${X(p[0].t)} ${H-6}Z" fill="${r.vlak}" opacity="${r.op||.5}"/>`;
+    s+=`<path d="${d(p)}" fill="none" stroke="${r.lijn}" stroke-width="${r.dik||2.5}" ${r.stip?'stroke-dasharray="6 5"':""} stroke-linejoin="round"/>`;});
+  return `<svg class="${opties.cls||"spark"}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${s}</svg>`;
+}
+function boeiKaart(R){
+  const g=reeksVan(R,BOEI.golf),gl=vers(laatste(g),90*6e4);
+  const hoog=vers(laatste(reeksVan(R,BOEI.hoog)),90*6e4),dein=vers(laatste(reeksVan(R,BOEI.deining)),90*6e4),
+        per=vers(laatste(reeksVan(R,BOEI.periode)),90*6e4),tmp=vers(laatste(reeksVan(R,BOEI.temp)),3*36e5);
+  if(!gl)return `<div class="st boei"><div class="nm"><b>Golfboei Nieuwpoort</b></div><div class="geen">De boei geeft momenteel geen gegevens.</div></div>`;
+  const vroeger=g.filter(x=>x.t<=new Date(gl.t-3*36e5)).pop(),dv=vroeger?gl.v-vroeger.v:0;
+  const trend=Math.abs(dv)<8?"stabiel":dv>0?"↗ golven nemen toe":"↘ golven nemen af";
+  const m=v=>kom((v/100).toFixed(1));
+  const feit=(k,v,e)=>`<div class="f"><span class="k">${k}</span><b>${v}<small>${e}</small></b></div>`;
+  return `<div class="st boei"><div class="nm"><b>Golfboei Nieuwpoort</b><span>gemeten ${hm(gl.t)}</span></div>
+    <div class="hoofd"><div class="gh"><b>${m(gl.v)}</b><small>m golfhoogte</small></div><div class="trend">${trend}<br><span style="color:var(--muted);font-weight:600">laatste 3 uur</span></div></div>
+    <div class="feiten">${feit("Hoogste golven",hoog?m(hoog.v):"–","m")}${feit("Deining",dein?m(dein.v):"–","m")}${feit("Golfperiode",per?kom(per.v.toFixed(1)):"–","s")}${feit("Zeewater",tmp?kom(tmp.v.toFixed(1)):"–","°C")}</div>
+    <div class="k">Golfhoogte · laatste 24 uur</div>
+    ${lijn([{pts:reeksVan(R,BOEI.hoog).map(x=>({t:x.t,v:x.v/100})),lijn:"#6e6a66",stip:true,dik:2},{pts:g.map(x=>({t:x.t,v:x.v/100})),lijn:"#1f5d9e",vlak:"#6aa7e0",dik:3}],24,190,{cls:"golf",as:true,min:.5})}</div>`;
+}
+function windKaart(R,s){
+  let sp=[],gs=[],dr=[];
+  for(const p of s.wind){const a=reeksVan(R,p+"WVC");if(a.length&&Date.now()-laatste(a).t<VERS){sp=a.map(x=>({t:x.t,v:x.v*KN}));gs=reeksVan(R,p+"WC3").map(x=>({t:x.t,v:x.v*KN}));dr=reeksVan(R,p+"WRS");break;}}
+  const w=laatste(sp),g=laatste(gs),d=laatste(dr);
+  if(!w&&s.verberg)return "";
+  const golf=s.golf?vers(laatste(reeksVan(R,s.golf)),90*6e4):null;
+  const c=w?windFill(w.v):null;
+  return `<div class="st wk"><div class="nm"><b>${s.naam}</b><span>${s.sub}${w?" · "+hm(w.t):""}</span></div>
+    ${w?`<div class="wind"><div class="big" style="background:${rgb(c)};color:${ink(c)}">${d?arrow(d.v):""}${Math.round(w.v)}<small>kn</small></div>
+      <div class="wtx"><b>${d?dirName(d.v)+" · ":""}${bft(w.v)} Bft</b>${g?`stoten ${Math.round(g.v)} kn`:""}</div></div>
+      ${lijn([{pts:sp,lijn:"#070504",vlak:rgb(c),op:.55},{pts:gs,lijn:"#6e6a66",stip:true,dik:2}],12,70,{min:10})}`
+     :`<div class="geen">Windmeter geeft momenteel geen gegevens.</div>`}
+    ${golf?`<div class="rij">Golven <b>${kom((golf.v/100).toFixed(1))} m</b></div>`:""}</div>`;
 }
 function renderZee(){
-  if(!ZEE)return;const R=ZEE.reeksen,nu=Date.now();
-  $("zee").innerHTML=STATIONS.map(s=>{
-    let sp=[],gs=[],dr=[];
-    for(const p of s.wind){const a=reeksVan(R,p+"WVC");if(a.length&&nu-laatste(a).t<VERS){sp=a.map(x=>({t:x.t,v:x.v*KN}));gs=reeksVan(R,p+"WC3").map(x=>({t:x.t,v:x.v*KN}));dr=reeksVan(R,p+"WRS");break;}}
-    const w=laatste(sp),g=laatste(gs),d=laatste(dr);
-    const golf=reeksVan(R,s.golf),gl=laatste(golf),gv=gl&&nu-gl.t<2*VERS?gl:null;
-    const gmax=s.golfMax?laatste(reeksVan(R,s.golfMax)):null;
-    const temp=s.temp?laatste(reeksVan(R,s.temp)):null;
-    const tijd=w?w.t:gv?gv.t:null;
-    const c=w?windFill(w.v):null;
-    const windHtml=w?`<div class="wind"><div class="big" style="background:${rgb(c)};color:${ink(c)}">${d?arrow(d.v):""}${Math.round(w.v)}<small>kn</small></div>
-        <div class="wtx"><b>${d?dirName(d.v)+" · ":""}${bft(w.v)} Bft</b>${g?`stoten ${Math.round(g.v)} kn`:""}</div></div>${spark(sp,gs)}`
-      :`<div class="geen">Windmeter ${s.naam} geeft momenteel geen gegevens</div>`;
-    const golfHtml=`<div class="rij"><span class="k">Golven</span><span class="v">${gv?kom((gv.v/100).toFixed(1)):"–"}<small>m</small></span><span class="x">${gv&&gmax?"hoogste "+kom((gmax.v/100).toFixed(1))+" m":""}</span></div>`;
-    const tempHtml=temp?`<div class="rij"><span class="k">Zeewater</span><span class="v" style="color:var(--fg)">${kom(temp.v.toFixed(1))}<small>°C</small></span><span class="x"></span></div>`:"";
-    return `<div class="st"><div class="nm"><b>${s.naam}</b><span>${s.sub}${tijd?" · "+hm(tijd):""}</span></div><div class="k">Wind · laatste 12 uur</div>${windHtml}${golfHtml}${tempHtml}</div>`;}).join("");
-  $("src").textContent="Metingen: Meetnet Vlaamse Banken · bijgewerkt "+hm(new Date(ZEE.bijgewerkt))+" · stippellijn = windstoten";
+  if(!ZEE)return;const R=ZEE.reeksen;
+  $("zee").innerHTML=boeiKaart(R)+`<div class="kol">${WINDSTATIONS.map(s=>windKaart(R,s)).join("")}</div>`;
+  $("src").textContent="Metingen: Meetnet Vlaamse Banken · bijgewerkt "+hm(new Date(ZEE.bijgewerkt))+" · stippellijn: hoogste golven / windstoten";
 }
 
 /* ---------- klok ---------- */
