@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 13,
-  "bijgewerkt": "2026-10-20T15:17:22.000Z",
+  "versie": 14,
+  "bijgewerkt": "2026-10-20T15:41:38.000Z",
   "slides": [
     {
       "id": "programma",
@@ -93,6 +93,12 @@ window.SIGNAGE_CONFIG = {
       "naam": "Webcam Zeebrugge",
       "url": "webcam-zeebrugge.html",
       "type": "slide"
+    },
+    {
+      "id": "aandachtspunten",
+      "naam": "Aandachtspunten boten",
+      "url": "aandachtspunten.html",
+      "type": "slide"
     }
   ],
   "playlists": [
@@ -103,6 +109,10 @@ window.SIGNAGE_CONFIG = {
         {
           "slide": "programma",
           "duur": 20
+        },
+        {
+          "slide": "aandachtspunten",
+          "duur": 15
         },
         {
           "slide": "weer",
@@ -287,5 +297,6 @@ window.SIGNAGE_CONFIG = {
       "id": "bmvgql449",
       "tekst": "Feest!"
     }
-  ]
+  ],
+  "meldingen": []
 };

@@ -52,6 +52,8 @@
     cfg.slides.forEach(s => { if (s.type !== "video") delete s.duur; });
     // versie 3: tickerberichten staan centraal; elke playlist kiest welke er lopen
     if (!Array.isArray(cfg.berichten)) cfg.berichten = [];
+    // versie 4: korte meldingen (bv. aandachtspunten per boot) die slides kunnen tonen
+    if (!Array.isArray(cfg.meldingen)) cfg.meldingen = [];
     cfg.playlists.forEach(p => { if (!Array.isArray(p.ticker)) p.ticker = cfg.berichten.map(b => b.id); });
     return cfg;
   }
@@ -87,6 +89,10 @@
     return (cfg.berichten || []).filter(b => aan.includes(b.id) && String(b.tekst || "").trim()).map(b => b.tekst.trim());
   }
 
+  /* Meldingen met een label én een tekst; dringende eerst. */
+  const meldingenVoor = cfg => (cfg.meldingen || []).filter(m => String(m.label || "").trim() && String(m.tekst || "").trim())
+    .map(m => ({ label: m.label.trim(), tekst: m.tekst.trim(), dringend: !!m.dringend })).sort((a, b) => b.dringend - a.dringend);
+
   function leesConfigTekst(txt) {
     const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
     return JSON.parse(txt.slice(a, b + 1));
@@ -95,5 +101,5 @@
     "window.SIGNAGE_CONFIG = " + JSON.stringify(cfg, null, 2) + ";\n";
 
   window.Signage = { itemDuur, mediaHtml, schermById, migreer, DAGEN, pad, ymd, hm, dag, regelGeldt, actievePlaylist, playlistById, slideById,
-    speellijst, tickerVoor, leesConfigTekst, schrijfConfigTekst };
+    speellijst, tickerVoor, meldingenVoor, leesConfigTekst, schrijfConfigTekst };
 })();

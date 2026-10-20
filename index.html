@@ -155,10 +155,11 @@ async function volgende() {
 function tickerTekst() { try { return S.tickerVoor ? S.tickerVoor(cfg, huidigePlaylist()) : null; } catch (e) { return null; } }
 function stuurTicker(frame) {
   const b = tickerTekst(); if (!b) return;          // oude gedeelde code: berichten van de slide zelf laten staan
-  const k = JSON.stringify(b);
+  const m = S.meldingenVoor ? S.meldingenVoor(cfg) : [];
+  const k = JSON.stringify([b, m]);
   (frame ? [frame] : frames).forEach(f => {
     if (!f.contentWindow || (!frame && (f.tickerKey == null || f.tickerKey === k))) return;
-    f.contentWindow.postMessage({ type: "looop-ticker", berichten: b }, "*"); f.tickerKey = k;
+    f.contentWindow.postMessage({ type: "looop-ticker", berichten: b, meldingen: m }, "*"); f.tickerKey = k;
   });
 }
 /* in het beheer: laten weten welke slide nu speelt */

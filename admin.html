@@ -186,6 +186,10 @@ h2{font-size:20px;margin:0;font-weight:700}
 .bericht input:focus{box-shadow:0 2px 0 var(--pine)}
 .bericht.uit input{color:var(--muted)}
 .tickered .leeg{color:var(--muted);font-size:14px}
+.melding .lbl{flex:0 0 150px;font-weight:700}
+.melding .txt{flex:1}
+.melding .drk{flex:none;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;background:#f3e2c4;color:#8a5a00;cursor:pointer}
+.melding .drk.on{background:#e5483b;color:#fff}
 
 /* ---------- schema's van een scherm ---------- */
 .std{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;font-weight:600}
@@ -830,6 +834,38 @@ function kiesItem(pl, tab = "slide") {
   });
 }
 
+/* ============================================================ NOTICES
+   Korte meldingen die slides kunnen tonen: een label (bv. de naam van een boot), dringend of niet, en een korte tekst.
+   Enkel wat afwijkt; opgelost = verwijderen. Gaan online met Publish, zoals al de rest. */
+function viewNotices() {
+  const l = cfg.meldingen || (cfg.meldingen = []);
+  $("#view").innerHTML = `
+    <div class="kop"><div><h1>Library</h1></div></div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+      <div class="subtabs">${[["slides", "Slides"], ["media", "Media"], ["links", "Web pages"], ["notices", "Notices"]].map(([k, n]) => `<button class="${k === libTab ? "on" : ""}" data-tab="${k}">${n}</button>`).join("")}</div>
+    </div>
+    <p class="sub" style="margin:0 0 16px">Short notices for slides that show them, such as an issue on a boat. Mark the urgent ones; delete a notice once it's solved.</p>
+    <div id="meldingen" style="display:grid;gap:8px">${l.map(m => `<div class="bericht melding ${m.dringend ? "dr" : ""}" data-id="${esc(m.id)}">
+        <input class="lbl" value="${esc(m.label || "")}" placeholder="Boat" aria-label="Label">
+        <button class="drk ${m.dringend ? "on" : ""}" aria-pressed="${!!m.dringend}" title="${m.dringend ? "Urgent" : "Attention point"}">${m.dringend ? "Urgent" : "Attention"}</button>
+        <input class="txt" value="${esc(m.tekst || "")}" placeholder="What's wrong, in a few words" aria-label="Notice">
+        <button class="weg" title="Delete" aria-label="Delete">×</button></div>`).join("") || `<div class="leegvak">No notices. Everything is in order.</div>`}</div>
+    <div style="margin-top:12px"><button class="btn klein" id="nieuweMelding">+ New notice</button></div>`;
+  document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { libTab = b.dataset.tab; render(); });
+  document.querySelectorAll("#meldingen .melding").forEach(el => {
+    const m = l.find(x => x.id === el.dataset.id);
+    el.querySelector(".lbl").onchange = e => { m.label = e.target.value.trim(); bewaar(false); };
+    el.querySelector(".txt").onchange = e => { m.tekst = e.target.value.trim(); bewaar(false); melding("Notice saved"); };
+    el.querySelectorAll("input").forEach(i => i.onkeydown = e => { if (e.key === "Enter") i.blur(); });
+    el.querySelector(".drk").onclick = () => { m.dringend = !m.dringend; bewaar(); };
+    el.querySelector(".weg").onclick = () => metUndo("Notice deleted", () => { cfg.meldingen = cfg.meldingen.filter(x => x !== m); });
+  });
+  $("#nieuweMelding").onclick = () => {
+    const id = "m" + Date.now().toString(36); cfg.meldingen.push({ id, label: "", dringend: false, tekst: "" }); bewaar();
+    const n = document.querySelector(`#meldingen [data-id="${id}"] .lbl`); if (n) n.focus();
+  };
+}
+
 /* slepen om te sorteren (muis en aanraking) */
 function sorteer(lijst, sel, klaar) {
   lijst.querySelectorAll(".grip").forEach(g => g.onpointerdown = e => {
@@ -850,6 +886,7 @@ function sorteer(lijst, sel, klaar) {
 
 /* ============================================================ LIBRARY */
 function viewLibrary() {
+  if (libTab === "notices") return viewNotices();
   const gebruik = id => cfg.playlists.filter(p => p.items.some(i => i.slide === id)).map(p => p.naam);
   const tel = t => cfg.slides.filter(s => t.includes(soort(s))).length;
   const TABS = { slides: { soorten: ["slide"], uitleg: "Your own designed screens (HTML), such as the programme, weather and firing ranges." },
@@ -862,7 +899,7 @@ function viewLibrary() {
   $("#view").innerHTML = `
     <div class="kop"><div><h1>Library</h1></div></div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
-      <div class="subtabs">${[["slides", "Slides", tel(["slide"])], ["media", "Media", tel(["image", "video"])], ["links", "Web pages", tel(["link"])]].map(([k, n, c]) => `<button class="${k === libTab ? "on" : ""}" data-tab="${k}">${n}<small>${c}</small></button>`).join("")}</div>
+      <div class="subtabs">${[["slides", "Slides", tel(["slide"])], ["media", "Media", tel(["image", "video"])], ["links", "Web pages", tel(["link"])], ["notices", "Notices", (cfg.meldingen || []).length]].map(([k, n, c]) => `<button class="${k === libTab ? "on" : ""}" data-tab="${k}">${n}<small>${c}</small></button>`).join("")}</div>
     </div>
     <div class="grid">
       ${lijst.map(s => { const g = gebruik(s.id); return `<div class="sk" data-id="${s.id}">
