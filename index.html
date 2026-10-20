@@ -19,7 +19,7 @@
     font:700 1.4vh system-ui,sans-serif;display:none;z-index:9}
 </style>
 <script src="config.js"></script>
-<script src="signage-core.js"></script>
+<script>document.write('<script src="signage-core.js?v=' + Date.now() + '"><\/script>');</script>
 </head>
 <body>
 <iframe id="fA" title="slide"></iframe>
@@ -152,9 +152,10 @@ async function volgende() {
 }
 
 /* Tickerberichten van de huidige playlist doorgeven aan de slides (alleen bij een wijziging) */
-function tickerTekst() { return S.tickerVoor(cfg, huidigePlaylist()); }
+function tickerTekst() { try { return S.tickerVoor ? S.tickerVoor(cfg, huidigePlaylist()) : null; } catch (e) { return null; } }
 function stuurTicker(frame) {
-  const b = tickerTekst(), k = JSON.stringify(b);
+  const b = tickerTekst(); if (!b) return;          // oude gedeelde code: berichten van de slide zelf laten staan
+  const k = JSON.stringify(b);
   (frame ? [frame] : frames).forEach(f => {
     if (!f.contentWindow || (!frame && (f.tickerKey == null || f.tickerKey === k))) return;
     f.contentWindow.postMessage({ type: "looop-ticker", berichten: b }, "*"); f.tickerKey = k;
@@ -199,7 +200,7 @@ window.addEventListener("message", e => {
 /* Nachtelijke herstart om 04:00 */
 (function plan() {
   const n = new Date(), t = new Date(n); t.setHours(4, 0, 0, 0); if (t <= n) t.setDate(t.getDate() + 1);
-  setTimeout(() => location.reload(), t - n);
+  setTimeout(herlaad, t - n);
 })();
 
 if (!PREVIEW) {
@@ -212,6 +213,7 @@ if (!PREVIEW) {
 }
 
 /* Automatisch bijwerken: verschijnt er een nieuwe versie van de app (app.json), dan herlaadt deze pagina zichzelf. */
+function herlaad() { const u = new URL(location.href); u.searchParams.set("v", Date.now()); location.replace(u.href); }
 (function () {
   if (location.protocol === "file:") return;
   let geladen = null;
@@ -219,7 +221,7 @@ if (!PREVIEW) {
     try {
       const v = (await (await fetch("app.json?t=" + Date.now(), { cache: "no-store" })).json()).versie;
       if (geladen === null) geladen = v;
-      else if (v !== geladen && !(document.querySelector("#modal.open"))) location.reload();
+      else if (v !== geladen && !(document.querySelector("#modal.open"))) herlaad();
     } catch (e) {}
   };
   kijk(); setInterval(kijk, 3 * 60 * 1000);

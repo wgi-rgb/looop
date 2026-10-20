@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="config.js"></script>
-<script src="signage-core.js"></script>
+<script>document.write('<script src="signage-core.js?v=' + Date.now() + '"><\/script>');</script>
 <style>
 /* LOOOP · strak Scandinavisch: fris wit, diep leisteen, groenblauw als accent (de 'spelende' o) · Outfit.
    Lay-out: vaste kop met menu; per sectie een lijst links en een editor rechts. */
@@ -1097,6 +1097,7 @@ $("#instel").onclick = instellingen;
 })();
 
 /* Automatisch bijwerken: verschijnt er een nieuwe versie van de app (app.json), dan herlaadt deze pagina zichzelf. */
+function herlaad() { const u = new URL(location.href); u.searchParams.set("v", Date.now()); location.replace(u.href); }
 (function () {
   if (location.protocol === "file:") return;
   let geladen = null;
@@ -1104,7 +1105,7 @@ $("#instel").onclick = instellingen;
     try {
       const v = (await (await fetch("app.json?t=" + Date.now(), { cache: "no-store" })).json()).versie;
       if (geladen === null) geladen = v;
-      else if (v !== geladen && !(document.querySelector("#modal.open"))) location.reload();
+      else if (v !== geladen && !(document.querySelector("#modal.open"))) herlaad();
     } catch (e) {}
   };
   kijk(); setInterval(kijk, 3 * 60 * 1000);
