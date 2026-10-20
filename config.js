@@ -1,7 +1,7 @@
 window.SIGNAGE_CONFIG = {
   "organisatie": "Vlaamse Vaarschool",
-  "versie": 11,
-  "bijgewerkt": "2026-10-20T13:46:37.155Z",
+  "versie": 12,
+  "bijgewerkt": "2026-10-20T15:06:38.000Z",
   "slides": [
     {
       "id": "programma",
@@ -75,6 +75,12 @@ window.SIGNAGE_CONFIG = {
       "naam": "Getij Nieuwpoort",
       "url": "getij.html",
       "type": "slide"
+    },
+    {
+      "id": "nu-op-zee",
+      "naam": "Nu op zee",
+      "url": "nu-op-zee.html",
+      "type": "slide"
     }
   ],
   "playlists": [
@@ -100,6 +106,10 @@ window.SIGNAGE_CONFIG = {
         },
         {
           "slide": "getij",
+          "duur": 20
+        },
+        {
+          "slide": "nu-op-zee",
           "duur": 20
         },
         {

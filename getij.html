@@ -180,6 +180,8 @@ header{padding:3vh 3.5vw !important}
 .gnow .tr svg{width:2.4vh;height:2.4vh;fill:currentColor}
 .gnow .nx{font-size:var(--t-text);font-weight:600;color:var(--muted);white-space:nowrap}
 .gnow .nx b{color:var(--fg);font-weight:700}
+.gnow .nx.op{color:var(--fg);font-weight:700}
+.gnow .nx.sterk{color:#c0392b}
 .gext{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8vw}
 .gx{background:var(--panel);border-radius:1.6vh;padding:var(--s2) 1vw;min-width:0;display:grid;align-content:center;gap:.6vh}
 .gx .k{display:flex;align-items:center;gap:.4vw;font-size:1.3vh;font-weight:700;letter-spacing:.12em;white-space:nowrap;text-transform:uppercase;color:var(--muted)}
@@ -251,7 +253,7 @@ header{padding:3vh 3.5vw !important}
       <div class="gcurve"><svg id="gsvg" preserveAspectRatio="none"></svg></div>
       <div class="gstroom" id="gstroom"></div>
       <div class="gmorgen" id="gmorgen"></div>
-      <div class="src">Bron: Getijtafels 2026 · MDK – Vlaamse Hydrografie · astronomisch getij, zonder windopzet · hoogtes in m TAW</div>
+      <div class="src">Voorspelling: Getijtafels 2026 (MDK – Vlaamse Hydrografie) · gemeten: Meetnet Vlaamse Banken · m TAW</div>
     </section>
   </main>
   <div class="ticker"><div class="run"><div class="track" id="track"></div></div><div class="mouth" id="mouth"></div></div>
@@ -306,6 +308,18 @@ function tijType(d){
   return "";
 }
 
+
+/* ---------- gemeten waterstand (Meetnet Vlaamse Banken, via Apps Script) ----------
+   NPTWS5 = Nieuwpoort – Getij, m TAW × 100, elke 5 minuten. Het verschil met de voorspelling
+   is de opzet of afzet door wind en luchtdruk. Bij een storing: gewoon de voorspelling. */
+const MEETNET_URL="https://script.google.com/macros/s/AKfycbyqwihodr-9sSxnsg8s-4m0jpcdCpMeMi9-0u7YmMVJE1ZrU1nbyXQ88DQ4D0jSqmms/exec";
+let METING=null;
+async function loadMeting(){
+  try{const r=await fetch(MEETNET_URL,{cache:"no-store"});const d=await r.json();const v=d.reeksen&&d.reeksen.NPTWS5;
+    if(Array.isArray(v)&&v.length){METING=v.filter(x=>x[1]!=null).map(([t,c])=>({t:new Date(t),h:c/100}));renderGetij();}}catch(e){}
+}
+const metingNu=nu=>{if(!METING||!METING.length)return null;const m=METING[METING.length-1];return nu-m.t<40*6e4?m:null;};
+
 /* ---------- stroming in de havengeul ----------
    Bron volgt (Meetnet Vlaamse Banken). STROMING_BRON = null: geen stroming tonen.
    Testen met fictieve gegevens: getij.html?stroomdemo=1 */
@@ -341,9 +355,11 @@ function renderGetij(){
   const vlg=GETIJ.find(e=>e.t>nu),stijgt=vlg.s==="H";
   const min=Math.round((vlg.t-nu)/6e4),uu=Math.floor(min/60),mm=min%60;
   const type=tijType(nu);
-  $("gnow").innerHTML=`<div class="k">Nu</div><div class="h"><b>${m2(h)}</b><small>m</small></div>
+  const gm=metingNu(nu),dv=gm?gm.h-hoogte(gm.t):null;
+  const opzet=gm?(Math.abs(dv)<.05?"zoals voorspeld":`${m2(Math.abs(dv))} m ${dv>0?"hoger":"lager"} dan voorspeld`):"";
+  $("gnow").innerHTML=`<div class="k">${gm?"Gemeten "+hm(gm.t):"Nu · voorspeld"}</div><div class="h"><b>${m2(gm?gm.h:h)}</b><small>m</small></div>
     <div class="tr" style="color:${stijgt?SEA:"var(--fg)"}">${stijgt?PIJL_OP:PIJL_NEER}${stijgt?"Opkomend":"Afgaand"}</div>
-    <div class="nx">${stijgt?"Hoogwater":"Laagwater"} over <b>${uu?uu+" u ":""}${uu?pad2(mm):mm} min</b></div>`;
+    <div class="nx">${stijgt?"Hoogwater":"Laagwater"} over <b>${uu?uu+" u ":""}${uu?pad2(mm):mm} min</b></div>${gm?`<div class="nx op${Math.abs(dv)>=.2?" sterk":""}">${opzet}</div>`:""}`;
   const vandaag=GETIJ.filter(e=>e.t>=d0&&e.t<d1);
   const tegels=vandaag.map(e=>`<div class="gx ${e.s==="H"?"hw":"lw"}${e.t<nu?" voorbij":""}"><div class="k">${e.s==="H"?PIJL_OP:PIJL_NEER}${e.s==="H"?"Hoogwater":"Laagwater"}</div><div class="t">${hm(e.t)}</div><div class="v">${m2(e.h)} m</div></div>`);
   while(tegels.length<4)tegels.push(`<div class="gx leeg"></div>`);
@@ -374,6 +390,11 @@ function tekenCurve(d0,d1,nu){
   s+=`<defs><linearGradient id="gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa7e0" stop-opacity=".55"/><stop offset="1" stop-color="#6aa7e0" stop-opacity=".08"/></linearGradient></defs>`;
   s+=`<path d="${line}L${X(pts[pts.length-1][0])} ${H-axis}L${X(pts[0][0])} ${H-axis}Z" fill="url(#gw)"/>`;
   s+=`<path d="${line}" fill="none" stroke="${SEA}" stroke-width="${H*.012}" stroke-linejoin="round"/>`;
+  // gemeten waterstand: donkere lijn over de voorspelling
+  if(METING){const mp=METING.filter(m=>m.t>=d0&&m.t<d1);
+    if(mp.length>1){s+=`<path d="${mp.map((m,i)=>(i?"L":"M")+X((m.t-d0)/6e4).toFixed(1)+" "+Y(m.h).toFixed(1)).join("")}" fill="none" stroke="#070504" stroke-width="${H*.008}" stroke-linejoin="round" stroke-linecap="round"/>`;
+      s+=`<g font-size="${H*.05}" font-weight="600" fill="#6e6a66"><rect x="${W-W*.215}" y="${H*.035}" width="${W*.022}" height="${H*.012}" fill="${SEA}"/><text x="${W-W*.188}" y="${H*.06}">voorspeld</text>`+
+         `<rect x="${W-W*.1}" y="${H*.035}" width="${W*.022}" height="${H*.012}" fill="#070504"/><text x="${W-W*.073}" y="${H*.06}">gemeten</text></g>`;}}
   // hoog- en laagwaters labelen
   GETIJ.filter(e=>e.t>=d0&&e.t<d1).forEach(e=>{const m=(e.t-d0)/6e4,x=X(m),y=Y(e.h),up=e.s==="H";
     s+=`<circle cx="${x}" cy="${y}" r="${H*.018}" fill="#fff" stroke="${SEA}" stroke-width="${H*.01}"/>`;
@@ -502,7 +523,7 @@ function startTicker(){
 window.addEventListener("message",e=>{if(e.data&&e.data.type==="looop-ticker"&&Array.isArray(e.data.berichten)){BERICHTEN.splice(0,BERICHTEN.length,...e.data.berichten);startTicker();}});
 if(window.parent!==window)window.parent.postMessage({type:"looop-ticker-vraag"},"*");
 document.fonts&&document.fonts.ready?document.fonts.ready.then(startTicker):startTicker();
-tick();setInterval(tick,1000);renderGetij();setInterval(renderGetij,60*1000);addEventListener('resize',renderGetij);loadWx();setInterval(loadWx,15*60*1000);
+tick();setInterval(tick,1000);renderGetij();setInterval(renderGetij,60*1000);loadMeting();setInterval(loadMeting,5*60*1000);addEventListener('resize',renderGetij);loadWx();setInterval(loadWx,15*60*1000);
 setTimeout(()=>location.reload(),6*36e5);
 </script>
 </body>
